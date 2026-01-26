@@ -2,9 +2,21 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\Subject\AssignmentAttachmentSeeder;
+use Database\Seeders\Subject\AssignmentSeeder;
+use Database\Seeders\Subject\AssignmentTypeSeeder;
+use Database\Seeders\Subject\SubjectLevelSeeder;
+use Database\Seeders\Subject\SubjectSeeder;
+use Database\Seeders\Subject\TopicSeeder;
+use Database\Seeders\Subject\UserTopicSeeder;
+use Database\Seeders\User\FriendshipSeeder;
+use Database\Seeders\User\PersonalDataSeeder;
+use Database\Seeders\User\UserContactDataSeeder;
+use Database\Seeders\User\UserEducationDataSeeder;
+use Database\Seeders\User\UserSeeder;
 use Illuminate\Database\Seeder;
+
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +25,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Пользователи, их персональные данные и свящи между ними
+        $this->call([
+            UserSeeder::class,
+            PersonalDataSeeder::class,
+            UserContactDataSeeder::class,
+            UserEducationDataSeeder::class,
+            FriendshipSeeder::class,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Занятия и их прикрепление к пользователям
+        $this->call([
+            SubjectSeeder::class,
+            SubjectLevelSeeder::class,
+            TopicSeeder::class,
+            UserTopicSeeder::class,
+            AssignmentTypeSeeder::class,
+            AssignmentSeeder::class,
+            AssignmentAttachmentSeeder::class,
         ]);
     }
 }
