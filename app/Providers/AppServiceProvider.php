@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\Phone\RussianPhoneService;
 use App\Services\Subject\SubjectService;
+use App\Services\Subject\UserTopicService;
 use App\Services\User\ContactDataService;
 use App\Services\User\EducationDataService;
 use App\Services\User\FriendshipService;
@@ -55,6 +56,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(SubjectService::class, function ($app) {
             return new SubjectService();
+        });
+
+        $this->app->singleton(UserTopicService::class, function ($app) {
+            return new UserTopicService($this->app->make(UserService::class));
         });
     }
 

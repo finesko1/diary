@@ -23,7 +23,7 @@ class FriendshipController extends Controller
         {
             $friends = $this->friendshipService->index();
 
-            return response()->json(['friends' => $friends]);
+            return response()->json(['users' => $friends]);
         }
         catch (\InvalidArgumentException $e)
         {

@@ -15,20 +15,28 @@ class AuthController extends Controller
         try
         {
             $request->validate([
-                'email' => 'required|string|email',
+                'login' => 'required|string', // Изменяем с email на login
                 'password' => 'required|string'
             ]);
 
-            $user = User::where('email', $request->email)->first();
+            // Определяем тип введенных данных
+            $login = $request->login;
+
+            // Проверяем, является ли ввод email
+            if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+                $user = User::where('email', $login)->first();
+            } else {
+                $user = User::where('username', $login)->first();
+            }
+
             if (!$user)
             {
-                throw ValidationException::withMessages(['email' => 'Email не существует']);
+                throw ValidationException::withMessages(['login' => 'Пользователь не найден']);
             }
+
             if (!Hash::check($request->password, $user->password))
             {
-                {
-                    throw ValidationException::withMessages(['password' =>'Неверный пароль.']);
-                }
+                throw ValidationException::withMessages(['password' => 'Неверный пароль.']);
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -36,6 +44,7 @@ class AuthController extends Controller
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer',
+                'user_id' => $user->id,
             ]);
         }
         catch(ValidationException $e)

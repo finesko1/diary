@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Subject;
 
+use App\Models\Subject\Lesson;
 use App\Models\Subject\Topic;
 use App\Models\Subject\UserTopic;
 use App\Models\User\User;
@@ -27,13 +28,19 @@ class UserTopicSeeder extends Seeder
 
         foreach ($students as $student) {
             $countForStudent = rand(1, 5);
-
             for ($i = 0; $i < $countForStudent; $i++) {
-                UserTopic::create([
+                $currentTopic = $topics->random();
+                $lesson = Lesson::create([
+                    'subject_id' => $currentTopic->subject_id,
+                    'date' => now()->addDay(rand(-5, 5)),
                     'teacher_id' => $teacher->id,
                     'student_id' => $student->id,
-                    'topic_id' => $topics->random()->id,
-                    'date' => now()->addDay(rand(-5, 5)),
+                ]);
+
+                UserTopic::create([
+                    'topic_id' => $currentTopic->id,
+                    'lesson_id' => $lesson->id,
+                    'mark' => rand(3, 5),
                 ]);
             }
 

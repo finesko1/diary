@@ -2,8 +2,12 @@
 
 namespace App\Services\User;
 
+use App\Http\Requests\User\CreateLearnerPostRequest;
+use App\Models\User\Friendship;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
@@ -17,9 +21,10 @@ class UserService
             return [
                 'id' => $user->id,
                 'email' => $user->email,
-                'lastName' => $user->personalData['last_name'],
-                'firstName' => $user->personalData['first_name'],
-                'middleName' => $user->personalData['middle_name'],
+                'username' => $user->username,
+                'lastName' => $user->personalData['last_name'] ?? null,
+                'firstName' => $user->personalData['first_name'] ?? null,
+                'middleName' => $user->personalData['middle_name'] ?? null,
             ];
         })->toArray();
     }
@@ -49,13 +54,39 @@ class UserService
 
     public function getFriends()
     {
-        return auth()->user()->friends()
-            ->with(['personalData' => function ($query) {
-                $query->select('user_id', 'first_name', 'last_name', 'middle_name');
-            }])
-            ->get()
-            ->mapWithKeys(function ($friend) {
-                return $this->getUsersDataForListById($friend->id);
-            });
+        return auth()->user()->friends()->get()->flatMap(function ($user) {
+            return $this->getUsersDataForListById(
+                $user->user_id === auth()->user()->id
+                    ? $user->friend_id
+                    : $user->user_id
+            );
+        });
+    }
+
+    public function createLearner(CreateLearnerPostRequest $request)
+    {
+        DB::beginTransaction();
+
+        try
+        {
+            $learner = User::create([
+               'username' => $request->username,
+               'password' => Hash::make($request->password),
+            ]);
+
+            Friendship::create([
+                'user_id' => auth()->user()->id,
+                'friend_id' => $learner->id,
+                'status' => Friendship::STATUS_ACCEPTED,
+            ]);
+
+            DB::commit();
+        }
+        catch (\Exception $e)
+        {
+            DB::rollBack();
+
+            throw new \InvalidArgumentException($e->getMessage());
+        }
     }
 }

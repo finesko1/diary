@@ -14,7 +14,11 @@ return new class extends Migration
         Schema::create('assignment_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->uuid('user_id')->constrained('users')
+                ->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
+
+            $table->unique(['user_id', 'name']);
         });
     }
 

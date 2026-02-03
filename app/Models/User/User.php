@@ -38,6 +38,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'email',
+        'username',
         'password',
         'role'
     ];
@@ -121,8 +122,9 @@ class User extends Authenticatable
 
     public function friends()
     {
-        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
-            ->wherePivot('status', 'accepted');
+        return $this->friendships()->where(function($query) {
+            $query->where('status', 'accepted');
+        });
     }
 
     public function getLearners()

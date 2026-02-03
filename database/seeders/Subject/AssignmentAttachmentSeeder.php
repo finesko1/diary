@@ -4,6 +4,7 @@ namespace Database\Seeders\Subject;
 
 use App\Models\Subject\Assignment;
 use App\Models\Subject\AssignmentAttachment;
+use App\Models\Subject\Lesson;
 use App\Models\Subject\UserTopic;
 use App\Models\Subject\UserTopicAssignment;
 use App\Models\User\User;
@@ -17,7 +18,7 @@ class AssignmentAttachmentSeeder extends Seeder
      */
     public function run(): void
     {
-        $userTopics = UserTopic::all();
+        $lessons = Lesson::all();
 
         // Пример файлов для случайного выбора
         $sampleFiles = [
@@ -46,45 +47,50 @@ class AssignmentAttachmentSeeder extends Seeder
 
         $counter = 0;
 
-        foreach ($userTopics as $userTopic) {
-            $assignments = UserTopicAssignment::where('user_topic_id', $userTopic->id)->get();
-            foreach ($assignments as $assignment)
-            {
-                $countTeacherAttachments = rand(1, 5);
+        foreach ($lessons as $lesson)
+        {
+            $lessonUserTopics = UserTopic::where('lesson_id', $lesson->id)->get();
 
-                for ($i = 0; $i < $countTeacherAttachments; $i++) {
-                    $randomFile = $sampleFiles[array_rand($sampleFiles)];
+            foreach ($lessonUserTopics as $userTopic) {
+                $assignments = UserTopicAssignment::where('user_topic_id', $userTopic->id)->get();
+                foreach ($assignments as $assignment)
+                {
+                    $countTeacherAttachments = rand(1, 5);
 
-                    AssignmentAttachment::create([
-                        'assignment_id' => $assignment->id,
-                        'user_id' => $userTopic->teacher_id,
-                        'type' => $randomFile['type'],
-                        'description' => 'Вложение к заданию ' . $assignment->id,
-                        'path' => $randomFile['path'],
-                        'original_name' => $randomFile['name'],
-                        'mime_type' => $randomFile['mime'],
-                        'size' => $randomFile['size'],
-                    ]);
+                    for ($i = 0; $i < $countTeacherAttachments; $i++) {
+                        $randomFile = $sampleFiles[array_rand($sampleFiles)];
+
+                        AssignmentAttachment::create([
+                            'assignment_id' => $assignment->id,
+                            'user_id' => $lesson->teacher_id,
+                            'type' => $randomFile['type'],
+                            'description' => 'Вложение к заданию ' . $assignment->id,
+                            'path' => $randomFile['path'],
+                            'original_name' => $randomFile['name'],
+                            'mime_type' => $randomFile['mime'],
+                            'size' => $randomFile['size'],
+                        ]);
+                    }
+
+                    $countStudentAttachments = rand(1, 5);
+
+                    for ($i = 0; $i < $countStudentAttachments; $i++) {
+                        $randomFile = $sampleFiles[array_rand($sampleFiles)];
+
+                        AssignmentAttachment::create([
+                            'assignment_id' => $assignment->id,
+                            'user_id' => $lesson->student_id,
+                            'type' => $randomFile['type'],
+                            'description' => 'Вложение к заданию ' . $assignment->id,
+                            'path' => $randomFile['path'],
+                            'original_name' => $randomFile['name'],
+                            'mime_type' => $randomFile['mime'],
+                            'size' => $randomFile['size'],
+                        ]);
+                    }
+
+                    $counter += ($countTeacherAttachments + $countStudentAttachments);
                 }
-
-                $countStudentAttachments = rand(1, 5);
-
-                for ($i = 0; $i < $countStudentAttachments; $i++) {
-                    $randomFile = $sampleFiles[array_rand($sampleFiles)];
-
-                    AssignmentAttachment::create([
-                        'assignment_id' => $assignment->id,
-                        'user_id' => $userTopic->student_id,
-                        'type' => $randomFile['type'],
-                        'description' => 'Вложение к заданию ' . $assignment->id,
-                        'path' => $randomFile['path'],
-                        'original_name' => $randomFile['name'],
-                        'mime_type' => $randomFile['mime'],
-                        'size' => $randomFile['size'],
-                    ]);
-                }
-
-                $counter += ($countTeacherAttachments + $countStudentAttachments);
             }
         }
 

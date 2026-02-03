@@ -4,6 +4,7 @@ namespace Database\Seeders\Subject;
 
 use App\Models\Subject\Assignment;
 use App\Models\Subject\AssignmentType;
+use App\Models\Subject\Lesson;
 use App\Models\Subject\UserTopic;
 use App\Models\Subject\UserTopicAssignment;
 use App\Models\User\User;
@@ -19,7 +20,9 @@ class AssignmentSeeder extends Seeder
         $teacher = User::where('role', User::ROLE_TEACHER)->first();
         $assignmentTypes = AssignmentType::all();
 
-        $userTopics = userTopic::where('teacher_id', $teacher->id)->get();
+        $teacherLessons = Lesson::where('teacher_id', $teacher->id)->get();
+
+        $userTopics = UserTopic::whereIn('lesson_id', $teacherLessons)->get();
         $countAssignmentsArray = [];
         $index = 0;
         foreach ($userTopics as $userTopic)

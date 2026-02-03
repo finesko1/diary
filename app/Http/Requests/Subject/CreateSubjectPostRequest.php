@@ -23,46 +23,42 @@ class CreateSubjectPostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            '*.date' => 'required|date',
-            '*.time' => 'required|date_format:H:i',
-            '*.subject_id' => 'required|integer|exists:subjects,id',
-            '*.user_id' => 'required|uuid|exists:users,id',
-            '*.topic_id' => 'required_without:*.topic_name|integer|exists:topics,id',
-            '*.topic_name' => 'required_without:*.topic_id|string',
-            '*.topic_description' => 'string',
-            '*.assignments' => 'array',
-            '*.assignments.*.assignment_id' => 'required_without:*.assignments.*.assignment_name|
-                exists:assignments,id',
-            '*.assignments.*.assignment_name' => 'required_without:*.assignments.*.assignment_id|string',
-            '*.assignments.*.assignment_description' => 'string'
+            'datetime' => 'required|date',
+            'subject_id' => 'required|integer|exists:subjects,id',
+            'user_id' => 'required|uuid|exists:users,id',
+            'topics' => 'array',
+            'topics.topic_id' => 'integer|exists:topics,id',
+            'topics.topic_name' => 'string',
+            'topics.topic_description' => 'string',
+            'topics.assignments' => 'array',
+            'topics.assignments.tasks.assignment_id' => 'integer|exists:assignments,id',
+            'topics.assignments.tasks.assignment_name' => 'string',
+            'topics.assignments.tasks.assignment_description' => 'string'
         ];
     }
 
     public function messages(): array
     {
         return [
-            '*.date.required' => "Укажите дату занятия",
-            '*.date.date' => "Укажите дату занятия в формате дд-мм-гггг",
+            'datetime.required' => "Укажите дату занятия",
+            'datetime.date' => "Укажите дату занятия в формате ISO",
 
-            '*.time.required' => "Укажите время занятия",
-            '*.time.date_format' => "Укажите время в формате часы:минуты",
-            '*.time.time' => "Укажите время в формате часы:минуты",
+            'subject_id.required' => 'Укажите предмет занятия',
+            'subject_id.exists' => 'Выберите существующий предмет',
+            'subject_id.integer' => 'Укажите номер предмета',
 
-            '*.subject_id.required' => 'Укажите предмет занятия',
-            '*.subject_id.exists' => 'Выберите существующий предмет',
-            '*.subject_id.integer' => 'Укажите номер предмета',
+            'user_id.required' => 'Выберите ученика',
+            'user_id.uuid' => 'Неправильный формат uuid ученика',
+            'user_id.exists' => 'Ученика не существует',
 
-            '*.user_id.required' => 'Выберите ученика',
-            '*.user_id.uuid' => 'Неправильный формат uuid ученика',
-            '*.user_id.exists' => 'Ученика не существует',
+            'topics.array' => 'Формат создания тем в виде массива',
+            'topics.topic_id.integer' => 'Укажите номер темы',
+            'topics.topic_id.exists' => 'Темы не существует',
 
-            '*.topic_id.integer' => 'Укажите номер темы',
-            '*.topic_id.exists' => 'Темы не существует',
-
-            '*.assignments.array' => 'Формат создания заданий в виде массива',
-            '*.assignments.*.assignment_id.required' => 'Укажите тип задания',
-            '*.assignments.*.assignment_id.exists' => 'Данного типа задания не существует',
-            '*.assignments.*.assignment_name.required' => 'Укажите тип задания',
+            'topics.assignments.array' => 'Формат создания заданий в виде массива',
+            'topics.assignments.tasks.assignment_id.required' => 'Укажите тип задания',
+            'topics.assignments.tasks.assignment_id.exists' => 'Данного типа задания не существует',
+            'topics.assignments.tasks.assignment_name.required' => 'Укажите тип задания',
         ];
     }
 }

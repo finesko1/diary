@@ -22,7 +22,7 @@ return new class extends Migration
             $table->date('certificate_date')->nullable();
             $table->timestamps();
 
-            $table->unique(['user_id', 'subject_id', 'level']);
+            $table->unique(['user_id', 'subject_id']);
         });
     }
 

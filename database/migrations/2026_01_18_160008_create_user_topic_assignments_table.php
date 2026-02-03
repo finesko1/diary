@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('user_topic_assignments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_topic_id')->constrained('user_topics');
-            $table->foreignId('assignment_id')->constrained('assignments');
+            $table->foreignId('user_topic_id')->constrained('user_topics')
+                ->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('assignment_id')->constrained('assignments')
+                ->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
 
             $table->unique(['user_topic_id', 'assignment_id']);

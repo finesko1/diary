@@ -4,7 +4,7 @@ namespace App\Http\Requests\Subject;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateUserTopicAssignmentPostRequest extends FormRequest
+class UserTopicDeleteRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -14,11 +14,10 @@ class CreateUserTopicAssignmentPostRequest extends FormRequest
         return auth()->check() && !(auth()->user()->isLearner());
     }
 
-    public function prepareForValidation(): void
+    public function prepareForValidation()
     {
         $this->merge([
-            'lesson_id' => $this->route('lessonId'),
-            'user_topic_id' => $this->route('userTopicId'),
+            'id' => $this->route('userTopicId'),
         ]);
     }
 
@@ -30,15 +29,7 @@ class CreateUserTopicAssignmentPostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'lesson_id' => 'required|integer|exists:lessons,id',
-            'user_topic_id' => 'required|exists:user_topics,id',
-            'assignment_id' => 'nullable|exists:user_topic_assignments,id',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
+            'id' => 'required|integer|exists:user_topics,id',
         ];
     }
 }

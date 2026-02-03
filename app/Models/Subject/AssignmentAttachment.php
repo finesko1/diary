@@ -19,4 +19,15 @@ class AssignmentAttachment extends Model
         'size',
         'metadata',
     ];
+    protected $hidden = [
+        'assignment_id',
+        'user_id',
+        'type',
+        'description',
+        'path',
+        'original_name',
+        'mime_type',
+        'size',
+        'metadata',
+    ];
 }

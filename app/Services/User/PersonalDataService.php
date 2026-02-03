@@ -21,10 +21,10 @@ class PersonalDataService
         $personalData = optional(User::find($userId))->personalData;
         $personalData = [
             'email' => Auth::user()->email,
-            'firstName' => $personalData->first_name,
-            'lastName' => $personalData->last_name,
-            'middleName' => $personalData->middle_name,
-            'dateOfBirth' => $personalData->date_of_birth
+            'firstName' => $personalData->first_name ?? null,
+            'lastName' => $personalData->last_name ?? null,
+            'middleName' => $personalData->middle_name ?? null,
+            'dateOfBirth' => $personalData && $personalData->date_of_birth
                 ? Carbon::parse($personalData->date_of_birth)->format('d-m-Y')
                 : null,
         ];

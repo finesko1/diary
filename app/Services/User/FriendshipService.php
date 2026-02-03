@@ -69,24 +69,33 @@ class FriendshipService
         if (!$friendship || $friendship->status !== Friendship::STATUS_BLOCKED )
             throw new \InvalidArgumentException('Пользователь не заблокирован');
 
-        if ($friendship === Friendship::BLOCK_MUTUAL)
-        {
-            $friendship->update([
-                'block_type' => $friendship->user_id === $user->id
-                    ? Friendship::BLOCK_BY_FRIEND
-                    : Friendship::BLOCK_FRIEND
-            ]);
-        }
-        else
-        {
-            $friendship->update([
-                'status' => Friendship::STATUS_DECLINED,
-                'initiator_id' => $friendship->user_id === $user->id
-                    ? $request->friendId
-                    : $user->id,
-                'block_type' => null
-            ]);
-        }
+        if ($user->isLearner())
+            throw new \InvalidArgumentException('Недоступно');
+
+        $friendship->update([
+            'status' => Friendship::STATUS_ACCEPTED,
+            'initiator_id' => $user->id,
+            'block_type' => null
+        ]);
+
+//        if ($friendship === Friendship::BLOCK_MUTUAL)
+//        {
+//            $friendship->update([
+//                'block_type' => $friendship->user_id === $user->id
+//                    ? Friendship::BLOCK_BY_FRIEND
+//                    : Friendship::BLOCK_FRIEND
+//            ]);
+//        }
+//        else
+//        {
+//            $friendship->update([
+//                'status' => Friendship::STATUS_DECLINED,
+//                'initiator_id' => $friendship->user_id === $user->id
+//                    ? $request->friendId
+//                    : $user->id,
+//                'block_type' => null
+//            ]);
+//        }
     }
 
     public function delete(FriendRequest $request)

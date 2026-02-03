@@ -4,21 +4,21 @@ namespace App\Http\Requests\Subject;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateUserTopicAssignmentPostRequest extends FormRequest
+class UserTopicAssignmentsGetRequets extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return auth()->check() && !(auth()->user()->isLearner());
+        return auth()->check();
     }
 
-    public function prepareForValidation(): void
+    public function prepareForValidation()
     {
-        $this->merge([
-            'lesson_id' => $this->route('lessonId'),
-            'user_topic_id' => $this->route('userTopicId'),
+        return $this->merge([
+            'user_topic_id' => request('userTopicId'),
+            'lesson_id' => request('lessonId'),
         ]);
     }
 
@@ -30,15 +30,17 @@ class CreateUserTopicAssignmentPostRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'user_topic_id' => 'required|integer|exists:user_topics,id',
             'lesson_id' => 'required|integer|exists:lessons,id',
-            'user_topic_id' => 'required|exists:user_topics,id',
-            'assignment_id' => 'nullable|exists:user_topic_assignments,id',
         ];
     }
 
     public function messages(): array
     {
         return [
+            'user_topic_id.required' => 'Укажите номер занятия',
+            'user_topic_id.integer' => 'Укажите номер занятия в числовом формате',
+            'user_topic_id.exists' => 'Занятия не существует',
         ];
     }
 }

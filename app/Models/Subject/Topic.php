@@ -12,5 +12,13 @@ class Topic extends Model
         'name',
         'description',
         'subject_id',
+        'user_id',
+    ];
+
+    protected $hidden = [
+        'user_id',
+        'subject_id',
+        'created_at',
+        'updated_at',
     ];
 }

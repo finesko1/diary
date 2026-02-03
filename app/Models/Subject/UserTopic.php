@@ -9,9 +9,16 @@ class UserTopic extends Model
     protected $table = 'user_topics';
 
     protected $fillable = [
-        'teacher_id',
-        'student_id',
+        'lesson_id',
         'topic_id',
-        'date',
+        'mark',
+    ];
+
+    protected $hidden = [
+        'lesson_id',
+        'topic_id',
+        'mark',
+        'created_at',
+        'updated_at',
     ];
 }

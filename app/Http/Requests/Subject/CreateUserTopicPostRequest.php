@@ -17,7 +17,7 @@ class CreateUserTopicPostRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $this->merge([
-            'subject_id' => $this->route('subjectId')
+            'lesson_id' => $this->route('lessonId')
         ]);
     }
 
@@ -29,10 +29,8 @@ class CreateUserTopicPostRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'lesson_id' => 'required|integer|exists:lessons,id',
             'subject_id' => 'required|integer|exists:subjects,id',
-            'student_id' => 'required|uuid|exists:users,id',
-            'topic_id' => 'required|integer|exists:topics,id',
-            'datetime' => 'required|date_format:d-m-Y H:i',
         ];
     }
 
@@ -41,12 +39,6 @@ class CreateUserTopicPostRequest extends FormRequest
         return [
             'subject_id.required' => 'Укажите предмет',
             'subject_id.exists' => 'Предмета не существует',
-            'student_id.required' => 'Укажите пользователя',
-            'student_id.exists' => 'Пользователя не существует',
-            'topic_id.required' => 'Укажите занятие',
-            'topic_id.exists' => 'Занятия не существует',
-            'datetime.required' => 'Укажите дату занятия',
-            'datetime.date_format' => 'Формат даты занятия день-месяц-год часы:минуты',
         ];
     }
 }
