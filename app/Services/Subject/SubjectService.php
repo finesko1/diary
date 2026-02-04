@@ -213,7 +213,9 @@ class SubjectService
     {
         $userTopic = UserTopic::find($request->id);
 
-        if ($userTopic->teacher_id !== auth()->user()->id)
+        $lesson = Lesson::find($userTopic->lesson_id);
+
+        if ($lesson->teacher_id !== auth()->user()->id)
             throw new \InvalidArgumentException('Недоступно', 400);
 
         $userTopic->delete();

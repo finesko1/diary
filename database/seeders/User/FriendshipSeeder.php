@@ -33,7 +33,7 @@ class FriendshipSeeder extends Seeder
                 Friendship::create([
                     'user_id' => $teacher->id,
                     'friend_id' => $friend->id,
-                    'status' => 'pending',
+                    'status' => 'accepted',
                     'initiator_id' => $friend->id,
                 ]);
             }
@@ -42,7 +42,7 @@ class FriendshipSeeder extends Seeder
                 Friendship::create([
                     'user_id' => $teacher->id,
                     'friend_id' => $friend->id,
-                    'status' => 'blocked',
+                    'status' => 'accepted',
                     'block_type' => 'friend_blocked_user',
                 ]);
             }

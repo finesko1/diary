@@ -18,7 +18,7 @@ use Illuminate\Database\Seeder;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-class DatabaseSeeder extends Seeder
+class DevelopmentSeeder extends Seeder
 {
     /**
      * Seed the application's database.
