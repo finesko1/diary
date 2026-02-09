@@ -16,6 +16,7 @@ use App\Models\Subject\UserTopicAssignment;
 use App\Models\User\User;
 use App\Services\User\UserService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class UserTopicService
 {
@@ -168,65 +169,101 @@ class UserTopicService
 
         $assignments = $userTopicAssignments->map(function ($userTopicAssignment) {
             $assignment = Assignment::find($userTopicAssignment->assignment_id);
-            $assignmentAttachments = AssignmentAttachment::where('assignment_id', $assignment->id)->get();
+            $assignmentAttachments = $assignment->files()->get();
 
-            $teacherFiles = $assignmentAttachments->filter(function ($assignmentAttachment) {
-                return (User::find($assignmentAttachment->user_id)->role === User::ROLE_TEACHER) &&
-                    $assignmentAttachment->type === 'file';
+            $teacherFiles = $assignmentAttachments->filter(function ($file) {
+                return $file->user && $file->user->role === User::ROLE_TEACHER;
+                })
+                ->filter(function ($file) {
+                    return $file->type === 'file';
                 })
                 ->map(function ($assignmentAttachment) {
                 return [
                     'id' => $assignmentAttachment->id,
                     'originalName' => $assignmentAttachment->original_name,
-                    'path' => $assignmentAttachment->path,
+                    'url' => $assignmentAttachment->path,
                 ];
             });
-            $teacherPhotos = $assignmentAttachments->filter(function ($assignmentAttachment) {
-                return (User::find($assignmentAttachment->user_id)->role === User::ROLE_TEACHER) &&
-                    $assignmentAttachment->type === 'image';
+            $teacherPhotos = $assignmentAttachments->filter(function ($file) {
+                return $file->user && $file->user->role === User::ROLE_TEACHER;
+            })
+                ->filter(function ($file) {
+                    return $file->type === 'image';
                 })
                 ->map(function ($assignmentAttachment) {
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'path' => $assignmentAttachment->path,
+                        'url' => Storage::url($assignmentAttachment->path),
+                    ];
+                });
+            $teacherVideos = $assignmentAttachments->filter(function ($file) {
+                return $file->user && $file->user->role === User::ROLE_TEACHER;
+                })
+                ->filter(function ($file) {
+                    return $file->type === 'video';
+                })
+                ->map(function ($assignmentAttachment) {
+                    return [
+                        'id' => $assignmentAttachment->id,
+                        'originalName' => $assignmentAttachment->original_name,
+                        'url' => Storage::url($assignmentAttachment->path),
                     ];
                 });
 
-            $learnerFiles = $assignmentAttachments->filter(function ($assignmentAttachment) {
-                return (User::find($assignmentAttachment->user_id)->isLearner()) &&
-                    $assignmentAttachment->type === 'file';
-            })
+            $learnerFiles = $assignmentAttachments->filter(function ($file) {
+                    return $file->user && $file->user->isLearner();
+                })
+                ->filter(function ($file) {
+                    return $file->type === 'file';
+                })
                 ->map(function ($assignmentAttachment) {
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'path' => $assignmentAttachment->path,
+                        'url' => Storage::url($assignmentAttachment->path),
                     ];
                 });
-            $learnerPhotos = $assignmentAttachments->filter(function ($assignmentAttachment) {
-                return (User::find($assignmentAttachment->user_id)->isLearner()) &&
-                    $assignmentAttachment->type === 'image';
-            })
+            $learnerPhotos = $assignmentAttachments->filter(function ($file) {
+                    return $file->user && $file->user->isLearner();
+                })
+                ->filter(function ($file) {
+                    return $file->type === 'image';
+                })
                 ->map(function ($assignmentAttachment) {
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'path' => $assignmentAttachment->path,
+                        'url' => Storage::url($assignmentAttachment->path),
+                    ];
+                });
+            $learnerVideos = $assignmentAttachments->filter(function ($file) {
+                    return $file->user && $file->user->isLearner();
+                })
+                ->filter(function ($file) {
+                    return $file->type === 'video';
+                })
+                ->map(function ($assignmentAttachment) {
+                    return [
+                        'id' => $assignmentAttachment->id,
+                        'originalName' => $assignmentAttachment->original_name,
+                        'url' => Storage::url($assignmentAttachment->path),
                     ];
                 });
 
             return [
                 'id' => $assignment->id,
                 'type_id' => $assignment->assignment_type_id,
-                'type' => AssignmentType::find($assignment->assignment_type_id)->name,
+                'type' => AssignmentType::find($assignment->assignment_type_id)->name ?? null,
                 'description' => $assignment->description ?? null,
                 'status' => $assignment->status ?? null,
                 'attachments' => [
                     'teacherFiles' => $teacherFiles,
                     'teacherPhotos' => $teacherPhotos,
+                    'teacherVideos' => $teacherVideos,
                     'learnerFiles' => $learnerFiles,
                     'learnerPhotos' => $learnerPhotos,
+                    'learnerVideos' => $learnerVideos,
                 ],
                 'mark' => $assignment->mark,
             ];

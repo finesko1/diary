@@ -7,6 +7,7 @@ use App\Http\Requests\PersonalData\UpdateCityPostRequest;
 use App\Http\Requests\PersonalData\UpdateDateOfBirthPostRequest;
 use App\Http\Requests\PersonalData\UpdateEmailPostRequest;
 use App\Http\Requests\PersonalData\UpdateFullNamePostRequest;
+use App\Http\Requests\PersonalData\UpdateUsernamePostRequest;
 use App\Models\User\User;
 use App\Services\User\PersonalDataService;
 use Illuminate\Http\Request;
@@ -55,10 +56,28 @@ class PersonalDataController extends Controller
 
     public function updateEmail(UpdateEmailPostRequest $request)
     {
-        $this->personalDataService->updateEmail($request);
+        try {
+            $this->personalDataService->updateEmail($request);
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        }
+        catch (\InvalidArgumentException $e)
+        {
+            return response()->json($e->getMessage(), 400);
+        }
     }
 
+    public function updateUsername(UpdateUsernamePostRequest $request)
+    {
+        try
+        {
+            $this->personalDataService->updateUsername($request);
 
+            return response()->json(['success' => true]);
+        }
+        catch (\InvalidArgumentException $e)
+        {
+            return response()->json($e->getMessage(), 400);
+        }
+    }
 }

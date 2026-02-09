@@ -3,11 +3,13 @@
 namespace App\Services\User;
 
 use App\Http\Requests\User\CreateLearnerPostRequest;
+use App\Http\Requests\User\UpdatePasswordPostRequest;
 use App\Models\User\Friendship;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use function Laravel\Prompts\password;
 
 class UserService
 {
@@ -88,5 +90,12 @@ class UserService
 
             throw new \InvalidArgumentException($e->getMessage());
         }
+    }
+
+    public function updatePassword(UpdatePasswordPostRequest $request)
+    {
+        auth()->user()->update([
+            'password' => Hash::make($request->password)
+        ]);
     }
 }

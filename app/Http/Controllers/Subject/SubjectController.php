@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Subject;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Subject\AddAssignmentInTopicPostRequest;
+use App\Http\Requests\Subject\AddAttachmentInAssignmentPostRequest;
 use App\Http\Requests\Subject\AssignmentDeleteRequest;
 use App\Http\Requests\Subject\AssignmentTypeDeleteRequest;
 use App\Http\Requests\Subject\AssignmentTypesGetRequest;
@@ -12,6 +14,7 @@ use App\Http\Requests\Subject\CreateAssignmentPostRequest;
 use App\Http\Requests\Subject\CreateTopicPostRequest;
 use App\Http\Requests\Subject\CreateUserTopicAssignmentPostRequest;
 use App\Http\Requests\Subject\CreateUserTopicPostRequest;
+use App\Http\Requests\Subject\RemoveAttachmentInAssignmentDeleteRequest;
 use App\Http\Requests\Subject\TopicDeleteRequest;
 use App\Http\Requests\Subject\TopicsGetRequest;
 use App\Http\Requests\Subject\UpdateAssignmentMarkPatchRequest;
@@ -168,7 +171,7 @@ class SubjectController extends Controller
         }
         catch (\Exception $e)
         {
-            return response()->json(['error' => $e->getMessage()]);
+            return response()->json(['error' => $e->getMessage()], 400);
         }
     }
 
@@ -238,7 +241,49 @@ class SubjectController extends Controller
         }
         catch (\Exception $e)
         {
-            return response()->json(['error' => $e->getMessage()]);
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function addAssignmentInTopic(AddAssignmentInTopicPostRequest $request)
+    {
+        try
+        {
+            $this->subjectService->addAssignmentInTopic($request);
+
+            return response()->json(['success' => true]);
+        }
+        catch (\Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function addAttachmentInAssignment(AddAttachmentInAssignmentPostRequest $request)
+    {
+        try
+        {
+            $this->subjectService->addAttachmentInAssignment($request);
+
+            return response()->json(['success' => true]);
+        }
+        catch (\Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function deleteAttachmentInAssignment(RemoveAttachmentInAssignmentDeleteRequest $request)
+    {
+        try
+        {
+            $this->subjectService->deleteAttachmentInAssignment($request);
+
+            return response()->json(['success' => true]);
+        }
+        catch (\Exception $e)
+        {
+            return response()->json(['error' => $e->getMessage()], 400);
         }
     }
 
