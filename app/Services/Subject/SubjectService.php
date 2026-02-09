@@ -2,6 +2,8 @@
 
 namespace App\Services\Subject;
 
+use App\Http\Requests\Subject\AddAssignmentInTopicPostRequest;
+use App\Http\Requests\Subject\AddAttachmentInAssignmentPostRequest;
 use App\Http\Requests\Subject\AssignmentDeleteRequest;
 use App\Http\Requests\Subject\AssignmentTypeDeleteRequest;
 use App\Http\Requests\Subject\AssignmentTypesGetRequest;
@@ -11,6 +13,7 @@ use App\Http\Requests\Subject\CreateSubjectPostRequest;
 use App\Http\Requests\Subject\CreateTopicPostRequest;
 use App\Http\Requests\Subject\CreateUserTopicAssignmentPostRequest;
 use App\Http\Requests\Subject\CreateUserTopicPostRequest;
+use App\Http\Requests\Subject\RemoveAttachmentInAssignmentDeleteRequest;
 use App\Http\Requests\Subject\TopicDeleteRequest;
 use App\Http\Requests\Subject\TopicsGetRequest;
 use App\Http\Requests\Subject\UpdateAssignmentMarkPatchRequest;
@@ -29,6 +32,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SubjectService
 {
@@ -93,15 +98,17 @@ class SubjectService
         try
         {
             $topics = $request->topics;
-
+            $lesson = Lesson::create([
+                'subject_id' => $request->subject_id,
+                'teacher_id' => auth()->user()->id,
+                'student_id' => $request->user_id,
+                'date' => Carbon::parse($request->datetime),
+            ]);
             if (!$topics)
             {
                 UserTopic::create([
-                    'subject_id' => $request->subject_id,
-                    'teacher_id' => auth()->user()->id,
-                    'student_id' => $request->user_id,
+                    'lesson_id' => $lesson->id,
                     'topic_id' => null,
-                    'date' => Carbon::parse($request->datetime),
                 ]);
 
                 DB::commit();
@@ -110,26 +117,39 @@ class SubjectService
 
             foreach ($topics as $event) {
                 // создаем тему согласно предмету при необходимости
-                $topic = Topic::where('id', $event['topic_id'])
-                    ->where('user_id', auth()->user()->id)->first();
+                $topic = null;
+                if (isset($event['topic_id']) && $event['topic_id'])
+                {
+                    $topic = Topic::where('id', $event['topic_id'])
+                        ->where('user_id', auth()->user()->id)->first();
+                }
 
                 if (!$topic && !empty($event['topic_name']))
                 {
-                    $topic = Topic::create([
-                        'name' => $event['topic_name'],
-                        'subject_id' => $request->subject_id,
-                        'user_id' => auth()->user()->id,
-                        'description' => $event['topic_name'] ?? null,
-                    ]);
+                    $topic = Topic::where('name', $event['topic_name'])
+                        ->where('user_id', auth()->user()->id)->first();
+
+                    if (!$topic)
+                    {
+                        $topic = Topic::create([
+                            'name' => $event['topic_name'],
+                            'subject_id' => $request->subject_id,
+                            'user_id' => auth()->user()->id,
+                            'description' => $event['topic_description'] ?? null,
+                        ]);
+                    }
+                    else
+                    {
+                        $topic->update([
+                            'name' => $event['topic_name'],
+                            'description' => $event['topic_description'],
+                        ]);
+                    }
                 }
 
-                // прикрепляем тему к ученику + оценка + дата
                 $userTopic = UserTopic::create([
-                    'subject_id' => $request->subject_id,
-                    'teacher_id' => auth()->user()->id,
-                    'student_id' => $request->user_id,
+                    'lesson_id' => $lesson->id,
                     'topic_id' => $topic->id ?? null,
-                    'date' => Carbon::parse($request->datetime),
                 ]);
 
                 // создаем записи заданий к теме
@@ -137,16 +157,27 @@ class SubjectService
 
                 foreach ($assignments as $task)
                 {
-                    $assignmentType = AssignmentType::where('id', $task['assignment_id'])
-                        ->where('user_id', auth()->user()->id)->first();
+                    $assignmentType = null;
+
+                    if (isset($task['assignment_id']) && $task['assignment_id'])
+                    {
+                        $assignmentType = AssignmentType::where('id', $task['assignment_id'])
+                            ->where('user_id', auth()->user()->id)->first();
+                    }
 
                     if (!$assignmentType && !empty($task['assignment_name']))
                     {
-                        $assignmentType = AssignmentType::create([
-                            'name' => $task['assignment_name'],
-                            'user_id' => auth()->user()->id,
-                            'description' => $task['assignment_name'] ?? null,
-                        ]);
+                        $assignmentType = AssignmentType::where('user_id', auth()->user()->id)
+                            ->where('name', $task['assignment_name'])->first();
+
+                        if (!$assignmentType)
+                        {
+                            $assignmentType = AssignmentType::create([
+                                'name' => $task['assignment_name'],
+                                'user_id' => auth()->user()->id,
+                                'description' => $task['assignment_name'] ?? null,
+                            ]);
+                        }
                     }
 
                     $assignment = Assignment::create([
@@ -170,7 +201,7 @@ class SubjectService
         }
         catch (UniqueConstraintViolationException $e) {
             DB::rollBack();
-            throw new \InvalidArgumentException("Данная запись существует");
+            throw new \InvalidArgumentException($e->getMessage());
         }
     }
 
@@ -356,4 +387,215 @@ class SubjectService
         if ($topic->subject_id != $subjectId)
             throw new \InvalidArgumentException("Для данного предмета не существует указанной темы");
     }
+
+    public function addAssignmentInTopic(AddAssignmentInTopicPostRequest $request)
+    {
+        DB::beginTransaction();
+
+        try
+        {
+            $data = [
+                'assignment_type_id' => $request->assignment_type_id,
+                'description' => $request->description ?? null,
+                'mark' => $request->mark ?? null,
+            ];
+
+            if ($request->has('status')) {
+                $data['status'] = $request->status;
+            }
+
+            $assignment = Assignment::create($data);
+
+            UserTopicAssignment::create([
+                'user_topic_id' => $request->user_topic_id,
+                'assignment_id' => $assignment->id,
+            ]);
+
+            DB::commit();
+        }
+        catch (\Exception $e)
+        {
+            DB::rollBack();
+
+            throw new \InvalidArgumentException($e->getMessage(), 400);
+        }
+    }
+
+    public function addAttachmentInAssignment(AddAttachmentInAssignmentPostRequest $request)
+    {
+        DB::beginTransaction();
+        $savedFilePath = null;
+
+        try
+        {
+            $lesson = Lesson::find($request->lesson_id);
+            $user = auth()->user();
+
+            if ($user->isLearner() && $user->id !== $lesson->student_id)
+            {
+                throw new \InvalidArgumentException('Недоступно');
+            }
+            else if (!$user->isLearner() && $user->id !== $lesson->teacher_id)
+            {
+                throw new \InvalidArgumentException('Недоступно');
+            }
+
+            $assignment = Assignment::find($request->assignment_id);
+            $file = $request->file('file');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+
+            // Определяем путь для сохранения
+            $directory = "/lessons/{$lesson->id}/assignments/{$assignment->id}";
+
+            // Сохраняем файл в storage
+            $path = Storage::disk('public')->putFileAs($directory, $file, $originalName);
+            $savedFilePath = $path;
+
+            // Создаем запись в БД
+            $newFile = $assignment->files()->create([
+                'disk' => 'public',
+                'path' => $path, // Например: "lessons/1/assignments/5/filename.jpg"
+                'original_name' => $originalName,
+                'mime_type' => $file->getMimeType(),
+                'size' => $file->getSize(),
+                'extension' => $extension,
+                'type' => $this->determineType($file->getMimeType()),
+                'user_id' => $user->id,
+            ]);
+
+            DB::commit();
+        }
+        catch (\InvalidArgumentException $e)
+        {
+            DB::rollBack();
+
+            if ($savedFilePath && Storage::disk('public')->exists($savedFilePath)) {
+                Storage::disk('public')->delete($savedFilePath);
+            }
+
+            throw new \InvalidArgumentException($e->getMessage());
+        }
+    }
+
+    public function deleteAttachmentInAssignment(RemoveAttachmentInAssignmentDeleteRequest $request)
+    {
+        DB::beginTransaction();
+
+        try
+        {
+            $lesson = Lesson::find($request->lesson_id);
+            $user = auth()->user();
+
+            if ($user->isLearner() && $user->id !== $lesson->student_id)
+            {
+                throw new \InvalidArgumentException('Недоступно');
+            }
+            else if (!$user->isLearner() && $user->id !== $lesson->teacher_id)
+            {
+                throw new \InvalidArgumentException('Недоступно');
+            }
+
+            $assignment = Assignment::find($request->assignment_id);
+            $attachment = $assignment->files->find($request->attachment_id);
+
+            $attachment->delete();
+            Storage::disk($attachment->disk)->delete($attachment->path);
+
+            DB::commit();
+        }
+        catch (\InvalidArgumentException $e)
+        {
+            DB::rollBack();
+            throw new \InvalidArgumentException($e->getMessage());
+        }
+    }
+
+    protected function determineType(?string $mimeType = null): string
+    {
+        if (empty($mimeType)) {
+            return 'other';
+        }
+
+        // Изображения
+        if (Str::startsWith($mimeType, 'image/')) {
+            return 'image';
+        }
+
+        // Видео
+        if (Str::startsWith($mimeType, 'video/')) {
+            return 'video';
+        }
+
+        // Аудио
+        if (Str::startsWith($mimeType, 'audio/')) {
+            return 'audio';
+        }
+
+        // Документы и офисные файлы - возвращаем 'file'
+        $documentMimes = [
+            // PDF
+            'application/pdf',
+
+            // Microsoft Word
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-word.document.macroEnabled.12',
+
+            // Microsoft Excel
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel.sheet.macroEnabled.12',
+
+            // Microsoft PowerPoint
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
+
+            // OpenDocument
+            'application/vnd.oasis.opendocument.text',
+            'application/vnd.oasis.opendocument.spreadsheet',
+            'application/vnd.oasis.opendocument.presentation',
+
+            // Текстовые файлы
+            'text/plain',
+            'text/html',
+            'text/css',
+            'text/javascript',
+            'application/json',
+            'application/xml',
+            'text/xml',
+            'text/csv',
+
+            // Другие документы
+            'application/rtf',
+            'application/x-tex',
+            'application/epub+zip',
+        ];
+
+        if (in_array($mimeType, $documentMimes)) {
+            return 'file';
+        }
+
+        // Архивы
+        $archiveMimes = [
+            'application/zip',
+            'application/x-zip-compressed',
+            'application/x-rar-compressed',
+            'application/x-tar',
+            'application/gzip',
+            'application/x-gzip',
+            'application/x-bzip2',
+            'application/x-7z-compressed',
+            'application/x-apple-diskimage',
+        ];
+
+        if (in_array($mimeType, $archiveMimes)) {
+            return 'archive';
+        }
+
+        // По умолчанию
+        return 'other';
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\CreateLearnerPostRequest;
+use App\Http\Requests\User\UpdatePasswordPostRequest;
 use App\Http\Requests\User\UploadPhotoPostRequest;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
@@ -76,6 +77,19 @@ class UserController extends Controller
         }
     }
 
+    public function updatePassword(UpdatePasswordPostRequest $request)
+    {
+        try
+        {
+            $this->userService->updatePassword($request);
+
+            return response()->json(['success' => true]);
+        }
+        catch (\InvalidArgumentException $e)
+        {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
 
     public function createLearner(CreateLearnerPostRequest $request)
     {

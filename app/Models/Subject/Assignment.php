@@ -2,6 +2,7 @@
 
 namespace App\Models\Subject;
 
+use App\Models\File;
 use Illuminate\Database\Eloquent\Model;
 
 class Assignment extends Model
@@ -14,4 +15,9 @@ class Assignment extends Model
         'status',
         'mark',
     ];
+
+    public function files()
+    {
+        return $this->morphMany(File::class, 'attachable');
+    }
 }

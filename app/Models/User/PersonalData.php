@@ -10,7 +10,7 @@ class PersonalData extends Model
 
     protected $fillable = [
         'last_name', 'first_name', 'middle_name',
-        'date_of_birth'
+        'date_of_birth', 'user_id', 'username',
     ];
 
     protected $hidden = ['id', 'user_id', 'created_at', 'updated_at'];

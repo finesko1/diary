@@ -24,24 +24,27 @@ class AssignmentAttachmentSeeder extends Seeder
         $sampleFiles = [
             [
                 'name' => 'document.pdf',
-                'path' => 'myself/testfile.pdf',
-                'type' => 'file',
-                'mime' => 'application/pdf',
-                'size' => 204800
+                'path' => 'myself/testfile.png',
+                'type' => 'image',
+                'mime' => 'image/png',
             ],
             [
                 'name' => 'textfile.txt',
-                'path' => 'myself/testfile.txt',
-                'type' => 'file',
-                'mime' => 'text/plain',
-                'size' => 10240
+                'path' => 'myself/testfile2.png',
+                'type' => 'image',
+                'mime' => 'image/png',
             ],
             [
-                'name' => 'image.jpg',
-                'path' => 'myself/testfile.jpg',
-                'type' => 'image',
-                'mime' => 'image/jpeg',
-                'size' => 51200
+                'name' => 'video.jpg',
+                'path' => 'myself/testvideo.mp4',
+                'type' => 'video',
+                'mime' => 'mp4',
+            ],
+            [
+                'name' => 'video2.jpg',
+                'path' => 'myself/testvideo2.mp4',
+                'type' => 'video',
+                'mime' => 'mp4',
             ],
         ];
 
@@ -52,23 +55,21 @@ class AssignmentAttachmentSeeder extends Seeder
             $lessonUserTopics = UserTopic::where('lesson_id', $lesson->id)->get();
 
             foreach ($lessonUserTopics as $userTopic) {
-                $assignments = UserTopicAssignment::where('user_topic_id', $userTopic->id)->get();
-                foreach ($assignments as $assignment)
+                $userTopicAssignments = UserTopicAssignment::where('user_topic_id', $userTopic->id)->get();
+                foreach ($userTopicAssignments as $userTopicAssignment)
                 {
+                    $assignment = Assignment::find($userTopicAssignment->assignment_id);
                     $countTeacherAttachments = rand(1, 5);
 
                     for ($i = 0; $i < $countTeacherAttachments; $i++) {
                         $randomFile = $sampleFiles[array_rand($sampleFiles)];
 
-                        AssignmentAttachment::create([
-                            'assignment_id' => $assignment->id,
-                            'user_id' => $lesson->teacher_id,
+                        $assignmentAttachment = $assignment->files()->create([
                             'type' => $randomFile['type'],
-                            'description' => 'Вложение к заданию ' . $assignment->id,
+                            'user_id' => $lesson->teacher_id,
                             'path' => $randomFile['path'],
                             'original_name' => $randomFile['name'],
                             'mime_type' => $randomFile['mime'],
-                            'size' => $randomFile['size'],
                         ]);
                     }
 
@@ -77,15 +78,12 @@ class AssignmentAttachmentSeeder extends Seeder
                     for ($i = 0; $i < $countStudentAttachments; $i++) {
                         $randomFile = $sampleFiles[array_rand($sampleFiles)];
 
-                        AssignmentAttachment::create([
-                            'assignment_id' => $assignment->id,
-                            'user_id' => $lesson->student_id,
+                        $assignmentAttachment = $assignment->files()->create([
                             'type' => $randomFile['type'],
-                            'description' => 'Вложение к заданию ' . $assignment->id,
+                            'user_id' => $lesson->student_id,
                             'path' => $randomFile['path'],
                             'original_name' => $randomFile['name'],
                             'mime_type' => $randomFile['mime'],
-                            'size' => $randomFile['size'],
                         ]);
                     }
 

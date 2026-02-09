@@ -2,16 +2,18 @@
 
 namespace App\Http\Requests\Subject;
 
+use App\Models\Subject\Assignment;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class UpdateAssignmentPutRequest extends FormRequest
+class RemoveAttachmentInAssignmentDeleteRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return auth()->check() && !(auth()->user()->isLearner());
+        return auth()->check();
     }
 
     public function prepareForValidation(): void
@@ -20,6 +22,7 @@ class UpdateAssignmentPutRequest extends FormRequest
             'lesson_id' => $this->route('lessonId'),
             'user_topic_id' => $this->route('userTopicId'),
             'assignment_id' => $this->route('assignmentId'),
+            'attachment_id' => $this->route('attachmentId'),
         ]);
     }
 
@@ -34,24 +37,14 @@ class UpdateAssignmentPutRequest extends FormRequest
             'lesson_id' => 'required|integer|exists:lessons,id',
             'user_topic_id' => 'required|integer|exists:user_topics,id',
             'assignment_id' => 'required|integer|exists:assignments,id',
-            'assignment_type_id' => 'required|integer|exists:assignment_types,id',
-            'description' => 'nullable|string',
-            'mark' => 'nullable',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'id.required' =>  'Укажите номер задания',
-            'user_id.required' =>  'Укажите id пользователя',
-
-            'id.integer' =>  'Необходим числовой формат',
-            'type_id.integer' =>  'Необходим числовой формат',
-
-            'id.exists' => 'Задания не существует',
-            'type_id.exists' => 'Типа задания не существует',
-            'user_id.exists' => 'Пользователя не существует',
+            'attachment_id' => [
+                'required',
+                'integer',
+                Rule::exists('files', 'id')->where(function ($query) {
+                    return $query->where('attachable_id', $this->route('assignmentId'))
+                        ->where('attachable_type', Assignment::class);
+                })
+            ]
         ];
     }
 }

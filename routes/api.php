@@ -35,6 +35,8 @@ Route::get('login', function () {
 Route::post('login', [AuthController::class, 'login']);
 
 Route::prefix('user')->middleware('auth:sanctum')->group(function () {
+    Route::post('password', [UserController::class, 'updatePassword']);
+
     Route::post('upload-photo', [UserController::class, 'uploadPhoto']);
 
     Route::get('', [UserController::class, 'show']);
@@ -52,6 +54,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
         Route::get('fullName', [PersonalDataController::class, 'getFullName']);
         Route::post('fullName', [PersonalDataController::class, 'updateFullName']);
         Route::post('email', [PersonalDataController::class, 'updateEmail']);
+        Route::post('username', [PersonalDataController::class, 'updateUsername']);
     });
 
 
@@ -142,7 +145,13 @@ Route::get('lessons/{lessonId}/userTopics/{userTopicId}/assignments', [UserTopic
     ->middleware('auth:sanctum');
 Route::post('lessons/{lessonId}/userTopics/{userTopicId}/assignments', [SubjectController::class, 'createUserTopicAssignment'])
     ->middleware('auth:sanctum');
+Route::post('lessons/{lessonId}/userTopics/{userTopicId}/addAssignmentInTopic', [SubjectController::class, 'addAssignmentInTopic'])
+    ->middleware('auth:sanctum');
 Route::put('lessons/{lessonId}/userTopics/{userTopicId}/assignments/{assignmentId}', [SubjectController::class, 'updateAssignment'])
+    ->middleware('auth:sanctum');
+Route::post('lessons/{lessonId}/userTopics/{userTopicId}/assignments/{assignmentId}/attachments', [SubjectController::class, 'addAttachmentInAssignment'])
+    ->middleware('auth:sanctum');
+Route::delete('lessons/{lessonId}/userTopics/{userTopicId}/assignments/{assignmentId}/attachments/{attachmentId}', [SubjectController::class, 'deleteAttachmentInAssignment'])
     ->middleware('auth:sanctum');
 Route::patch('assignments/{assignmentId}/mark', [SubjectController::class, 'updateAssignmentMark'])
     ->middleware('auth:sanctum');

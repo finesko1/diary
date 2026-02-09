@@ -4,7 +4,7 @@ namespace App\Http\Requests\Subject;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateAssignmentPutRequest extends FormRequest
+class AddAssignmentInTopicPostRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -14,12 +14,11 @@ class UpdateAssignmentPutRequest extends FormRequest
         return auth()->check() && !(auth()->user()->isLearner());
     }
 
-    public function prepareForValidation(): void
+    public function prepareForValidation()
     {
         $this->merge([
             'lesson_id' => $this->route('lessonId'),
             'user_topic_id' => $this->route('userTopicId'),
-            'assignment_id' => $this->route('assignmentId'),
         ]);
     }
 
@@ -33,25 +32,10 @@ class UpdateAssignmentPutRequest extends FormRequest
         return [
             'lesson_id' => 'required|integer|exists:lessons,id',
             'user_topic_id' => 'required|integer|exists:user_topics,id',
-            'assignment_id' => 'required|integer|exists:assignments,id',
             'assignment_type_id' => 'required|integer|exists:assignment_types,id',
             'description' => 'nullable|string',
-            'mark' => 'nullable',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'id.required' =>  'Укажите номер задания',
-            'user_id.required' =>  'Укажите id пользователя',
-
-            'id.integer' =>  'Необходим числовой формат',
-            'type_id.integer' =>  'Необходим числовой формат',
-
-            'id.exists' => 'Задания не существует',
-            'type_id.exists' => 'Типа задания не существует',
-            'user_id.exists' => 'Пользователя не существует',
+            'status' => 'nullable|enum:pending,in_progress,submitted,graded,returned',
+            'mark' => 'nullable|string',
         ];
     }
 }
