@@ -40,7 +40,8 @@ class User extends Authenticatable
         'email',
         'username',
         'password',
-        'role'
+        'role',
+        'img',
     ];
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable
         'remember_token',
         'created_at',
         'updated_at',
+        'img',
     ];
 
     /**

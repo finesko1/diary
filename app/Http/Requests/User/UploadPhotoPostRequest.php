@@ -26,8 +26,8 @@ class UploadPhotoPostRequest extends FormRequest
                 'required',
                 'image',
                 'mimes:jpeg,png,jpg,gif,webp,svg',
-                'max:10240',
-                'dimensions:min_width=100,min_height=100,max_width=2500,max_height=2500'
+                'max:122880',
+                'dimensions:min_width=100,min_height=100,max_width=5000,max_height=5000'
             ],
         ];
     }
@@ -38,8 +38,8 @@ class UploadPhotoPostRequest extends FormRequest
             'photo.required' => 'Пожалуйста, выберите файл для загрузки',
             'photo.image' => 'Файл должен быть изображением',
             'photo.mimes' => 'Поддерживаемые форматы: JPEG, PNG, JPG, GIF, WEBP, SVG',
-            'photo.max' => 'Максимальный размер файла: 10 МБ',
-            'photo.dimensions' => 'Изображение должно быть от 100x100 до 2500x2500 пикселей',
+            'photo.max' => 'Максимальный размер файла: 120 МБ',
+            'photo.dimensions' => 'Изображение должно быть от 100x100 до 5000x5000 пикселей',
         ];
     }
 }

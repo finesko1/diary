@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\FileService;
 use App\Services\Phone\RussianPhoneService;
+use App\Services\ProfileMaterialsService;
 use App\Services\Subject\SubjectService;
 use App\Services\Subject\UserTopicService;
 use App\Services\User\ContactDataService;
@@ -60,6 +62,14 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(UserTopicService::class, function ($app) {
             return new UserTopicService($this->app->make(UserService::class));
+        });
+
+        $this->app->singleton(ProfileMaterialsService::class, function ($app) {
+            return new ProfileMaterialsService();
+        });
+
+        $this->app->singleton(FileService::class, function ($app) {
+            return new FileService();
         });
     }
 

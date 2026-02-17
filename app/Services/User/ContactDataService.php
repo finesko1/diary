@@ -9,7 +9,9 @@ use App\Http\Requests\ContactData\UpdateVkPostRequest;
 use App\Http\Requests\ContactData\UpdateWhatsAppPostRequest;
 use App\Http\Requests\PersonalData\UpdateCityPostRequest;
 use App\Models\User\User;
+use App\Models\User\UserContactData;
 use App\Services\Phone\RussianPhoneService;
+use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
@@ -44,55 +46,100 @@ class ContactDataService
         ];
     }
 
-    public function updateCity(UpdateCityPostRequest $request)
+    public function updateCity(UpdateCityPostRequest $request): String
     {
-        auth()->user()->contactData->update([
-            'city' => $request->city
-        ]);
+        $user = Auth::user();
+
+        return UserContactData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'city' => $request->city,
+            ])
+            ->refresh()
+            ->city;
     }
 
-    public function updateTelephone(UpdateTelephonePostRequest $request)
+    public function updateTelephone(UpdateTelephonePostRequest $request): String
     {
-        $telephone = $request->telephone;
-        if(!empty($telephone))
-            $telephone = $this->phoneService->phoneNumberToE164($telephone);
+        $user = Auth::user();
 
+        if(!empty($request->telephone))
+            $telephone = $this->phoneService->phoneNumberToE164($request->telephone);
 
-        auth()->user()->contactData->update([
-            'telephone' => $telephone
-        ]);
+        return UserContactData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'telephone' => $telephone
+            ])
+            ->refresh()
+            ->telephone;
     }
 
-    public function updateTelegram(UpdateTelegramPostRequest $request)
+    public function updateTelegram(UpdateTelegramPostRequest $request): String
     {
-        auth()->user()->contactData->update([
-            'telegram' => $request->telegram
-        ]);
+        $user = Auth::user();
+
+        return UserContactData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'telegram' => $request->telegram
+            ])
+            ->refresh()
+            ->telegram;
     }
 
-    public function updateWhatsApp(UpdateWhatsAppPostRequest $request)
+    public function updateWhatsApp(UpdateWhatsAppPostRequest $request): String
     {
-        $telephone = $this->phoneService->phoneNumberToE164($request->whatsapp);
+        $user = Auth::user();
 
-        auth()->user()->contactData->update([
-            'whatsapp' => $telephone
-        ]);
+        if(!empty($request->telephone))
+            $telephone = $this->phoneService->phoneNumberToE164($request->telephone);
+
+        return UserContactData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'whatsapp' => $telephone
+            ])
+            ->refresh()
+            ->whatsapp;
     }
 
-    public function updateVk(UpdateVkPostRequest $request)
+    public function updateVk(UpdateVkPostRequest $request): String
     {
-        auth()->user()->contactData->update([
-            'vk' => $request->vk
-        ]);
+        $user = Auth::user();
+
+        return UserContactData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'vk' => $request->vk
+            ])
+            ->refresh()
+            ->vk;
     }
 
-    public function updateCallsPlatform(UpdateCallsPlatformPostRequest $request)
+    public function updateCallsPlatform(UpdateCallsPlatformPostRequest $request): String
     {
-        auth()->user()->contactData->update([
-            'calls_platform' => $request->callsPlatform
-        ]);
+        $user = Auth::user();
+
+        return UserContactData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'calls_platform' => $request->callsPlatform
+            ])
+            ->refresh()
+            ->calls_platform;
     }
-
-
 
 }

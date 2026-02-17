@@ -3,6 +3,7 @@
 namespace App\Services\User;
 
 
+use App\Exceptions\ApiException;
 use App\Http\Requests\PersonalData\UpdateCityPostRequest;
 use App\Http\Requests\PersonalData\UpdateDateOfBirthPostRequest;
 use App\Http\Requests\PersonalData\UpdateEmailPostRequest;
@@ -13,6 +14,7 @@ use App\Models\User\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PersonalDataService
@@ -20,9 +22,10 @@ class PersonalDataService
     public function getData($userId = null)
     {
         $userId = $userId ?? auth()->id();
+        $user = User::find($userId);
         $personalData = optional(User::find($userId))->personalData;
         $personalData = [
-            'email' => Auth::user()->email,
+            'email' => $user->email,
             'firstName' => $personalData->first_name ?? null,
             'lastName' => $personalData->last_name ?? null,
             'middleName' => $personalData->middle_name ?? null,
@@ -30,74 +33,78 @@ class PersonalDataService
                 ? Carbon::parse($personalData->date_of_birth)->format('d-m-Y')
                 : null,
             'username' => auth()->user()->username ?? null,
+            'img' => $user->img ? Storage::url($user->img) : null,
+            'role' => $user->role
         ];
 
-        if (!$personalData)
-            throw new \InvalidArgumentException('Персональные данные не найдены');
+        throw_if(!$personalData,
+            new ApiException('Персональные данные не найдены', 404)
+        );
 
         return $personalData;
     }
 
-    public function updateDateOfBirth(UpdateDateOfBirthPostRequest $request)
+    public function updateDateOfBirth(UpdateDateOfBirthPostRequest $request): String
     {
-        try {
-            $user = Auth::user();
+        $user = Auth::user();
 
-            PersonalData::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'date_of_birth' => $request->dateOfBirth
-                ]
-            );
-        }
-        catch (\Exception $exception)
-        {
-            throw new \InvalidArgumentException($exception->getMessage());
-        }
+        $dateOfBirth = PersonalData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'date_of_birth' => $request->dateOfBirth
+            ])
+            ->refresh()
+            ->date_of_birth;
+
+        return Carbon::parse($dateOfBirth)->format('d-m-Y');
     }
 
-    public function updateFullName(UpdateFullNamePostRequest $request)
+    public function updateFullName(UpdateFullNamePostRequest $request): array
     {
-        try {
-            PersonalData::updateOrCreate(
-                ['user_id' => Auth::id()],
-                [
-                    'last_name' => $request->lastName,
-                    'first_name' => $request->firstName,
-                    'middle_name' => $request->middleName,
-                ]
-            );
-        }
-        catch (\Exception $exception)
-        {
-            throw new \InvalidArgumentException($exception->getMessage());
-        }
+        $user = Auth::user();
+
+        $personalData = PersonalData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+                'last_name' => $request->lastName,
+                'first_name' => $request->firstName,
+                'middle_name' => $request->middleName,
+            ]
+        )->refresh();
+
+        return [
+            'firstName' => $personalData->first_name ?? null,
+            'lastName' => $personalData->last_name ?? null,
+            'middleName' => $personalData->middle_name ?? null,
+        ];
     }
 
-    public function updateEmail(UpdateEmailPostRequest $request)
+    public function updateEmail(UpdateEmailPostRequest $request): String
     {
-        try {
-            auth()->user()->updateOrCreate(['id' => Auth::id()],[
+        $user = Auth::user();
+
+        return $user->update([
+                'id' => $user->id
+            ],
+            [
                 'email' => $request->email,
-            ]);
-        }
-        catch (\Exception $exception)
-        {
-            throw new \InvalidArgumentException($exception->getMessage());
-        }
+            ])
+            ->refresh()
+            ->email;
     }
 
-    public function updateUsername(UpdateUsernamePostRequest $request)
+    public function updateUsername(UpdateUsernamePostRequest $request): String
     {
-        try
-        {
-            auth()->user()->update([
+        $user = Auth::user();
+
+        return $user->update([
                 'username' => $request->username
-            ]);
-        }
-        catch (\InvalidArgumentException $exception)
-        {
-            throw new \InvalidArgumentException($exception->getMessage());
-        }
+            ])
+            ->refresh()
+            ->username;
     }
 }

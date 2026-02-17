@@ -21,42 +21,33 @@ class UserEducationDataController extends Controller
 
     public function updateBeginningOfTeaching(UpdateBeginningOfTeachingPostRequest $request)
     {
-        try
-        {
-            $this->educationDataService->updateBeginningOfTeaching($request);
+        $beginningOfTeaching = $this->educationDataService->updateBeginningOfTeaching($request);
 
-        }
-        catch (\InvalidArgumentException $exception)
-        {
-            return response()->json(['error' => $exception->getMessage()], 400);
-        }
+        return response()->json([
+            'success' => true,
+            'beginningOfTeaching' => $beginningOfTeaching
+        ]);
     }
 
     public function updateCourse(UpdateCoursePostRequest $request)
     {
-        try
-        {
-            $this->educationDataService->updateCourse($request);
+        $course = $this->educationDataService->updateCourse($request);
 
-            return response()->json(['success' => true]);
-        }
-        catch (\InvalidArgumentException $exception)
-        {
-            return response()->json(['error' => $exception->getMessage()], 400);
-        }
+        return response()->json([
+            'success' => true,
+            'course' => $course
+        ]);
     }
 
     public function updateLanguageLevel(UpdateLanguageLevelPostRequest $request)
     {
-        try
-        {
-            $this->educationDataService->updateLanguageLevel($request);
+        $response = $this->educationDataService->updateLanguageLevel($request);
 
-            return response()->json(['success' => true]);
-        }
-        catch (\InvalidArgumentException $exception)
-        {
-            return response()->json(['error' => $exception->getMessage()], 400);
-        }
+        return response()->json([
+            'success' => true,
+            'subject_id' => $response['subject_id'],
+            'level' => $response['level'],
+            'evaluated_by' => $response['evaluated_by'],
+        ]);
     }
 }

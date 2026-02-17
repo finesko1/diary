@@ -2,6 +2,8 @@
 
 namespace App\Services\User;
 
+use App\Http\Requests\Profile\ProfileByIdGetRequest;
+
 class ProfileService
 {
     protected $personalDataService;
@@ -20,20 +22,24 @@ class ProfileService
 
     public function getFullProfile($userId = null)
     {
-        try
-        {
-            $userId = $userId ?? auth()->id();
+        $userId = $userId ?? auth()->id();
 
-            return [
-                'personalData' => $this->personalDataService->getData($userId),
-                'educationData' => $this->educationDataService->getData($userId),
-                'contactData' => $this->contactDataService->getData($userId),
-            ];
-        }
-        catch (\Exception $exception)
-        {
-            throw new \InvalidArgumentException($exception->getMessage());
-        }
+        return [
+            'personalData' => $this->personalDataService->getData($userId),
+            'educationData' => $this->educationDataService->getData($userId),
+            'contactData' => $this->contactDataService->getData($userId),
+        ];
+    }
+
+    public function getProfileDataById(ProfileByIdGetRequest $request)
+    {
+        $userId = $request->user_id ? $request->user_id : auth()->id();
+
+        return [
+            'personalData' => $this->personalDataService->getData($userId),
+            'educationData' => $this->educationDataService->getData($userId),
+            'contactData' => $this->contactDataService->getData($userId),
+        ];
     }
 
 }
