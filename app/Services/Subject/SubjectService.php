@@ -2,6 +2,7 @@
 
 namespace App\Services\Subject;
 
+use App\Exceptions\ApiException;
 use App\Http\Requests\Subject\AddAssignmentInTopicPostRequest;
 use App\Http\Requests\Subject\AddAttachmentInAssignmentPostRequest;
 use App\Http\Requests\Subject\AssignmentDeleteRequest;
@@ -23,10 +24,13 @@ use App\Http\Requests\Subject\UserTopicDeleteRequest;
 use App\Models\Subject\Assignment;
 use App\Models\Subject\AssignmentType;
 use App\Models\Subject\Lesson;
+use App\Models\Subject\Subject;
+use App\Models\Subject\SubjectLevel;
 use App\Models\Subject\Topic;
 use App\Models\Subject\UserTopic;
 use App\Models\Subject\UserTopicAssignment;
 use App\Models\User\User;
+use App\Services\FileService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -97,6 +101,19 @@ class SubjectService
 
         try
         {
+            $query = SubjectLevel::where('user_id', $request->user_id)
+                ->where('evaluated_by', auth()->user()->id)
+                ->where('subject_id', $request->subject_id);
+
+            if (!$query->first()) {
+                SubjectLevel::create([
+                    'user_id' => $request->user_id,
+                    'evaluated_by' => auth()->user()->id,
+                    'subject_id' => $request->subject_id,
+                    'level' => ''
+                ]);
+            }
+
             $topics = $request->topics;
             $lesson = Lesson::create([
                 'subject_id' => $request->subject_id,
@@ -433,11 +450,11 @@ class SubjectService
 
             if ($user->isLearner() && $user->id !== $lesson->student_id)
             {
-                throw new \InvalidArgumentException('Недоступно');
+                throw new ApiException('Недоступно', 403);
             }
             else if (!$user->isLearner() && $user->id !== $lesson->teacher_id)
             {
-                throw new \InvalidArgumentException('Недоступно');
+                throw new ApiException('Недоступно', 403);
             }
 
             $assignment = Assignment::find($request->assignment_id);
@@ -460,7 +477,7 @@ class SubjectService
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),
                 'extension' => $extension,
-                'type' => $this->determineType($file->getMimeType()),
+                'type' => app(FileService::class)->determineType($file->getMimeType()),
                 'user_id' => $user->id,
             ]);
 
@@ -510,92 +527,4 @@ class SubjectService
             throw new \InvalidArgumentException($e->getMessage());
         }
     }
-
-    protected function determineType(?string $mimeType = null): string
-    {
-        if (empty($mimeType)) {
-            return 'other';
-        }
-
-        // Изображения
-        if (Str::startsWith($mimeType, 'image/')) {
-            return 'image';
-        }
-
-        // Видео
-        if (Str::startsWith($mimeType, 'video/')) {
-            return 'video';
-        }
-
-        // Аудио
-        if (Str::startsWith($mimeType, 'audio/')) {
-            return 'audio';
-        }
-
-        // Документы и офисные файлы - возвращаем 'file'
-        $documentMimes = [
-            // PDF
-            'application/pdf',
-
-            // Microsoft Word
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-word.document.macroEnabled.12',
-
-            // Microsoft Excel
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel.sheet.macroEnabled.12',
-
-            // Microsoft PowerPoint
-            'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
-
-            // OpenDocument
-            'application/vnd.oasis.opendocument.text',
-            'application/vnd.oasis.opendocument.spreadsheet',
-            'application/vnd.oasis.opendocument.presentation',
-
-            // Текстовые файлы
-            'text/plain',
-            'text/html',
-            'text/css',
-            'text/javascript',
-            'application/json',
-            'application/xml',
-            'text/xml',
-            'text/csv',
-
-            // Другие документы
-            'application/rtf',
-            'application/x-tex',
-            'application/epub+zip',
-        ];
-
-        if (in_array($mimeType, $documentMimes)) {
-            return 'file';
-        }
-
-        // Архивы
-        $archiveMimes = [
-            'application/zip',
-            'application/x-zip-compressed',
-            'application/x-rar-compressed',
-            'application/x-tar',
-            'application/gzip',
-            'application/x-gzip',
-            'application/x-bzip2',
-            'application/x-7z-compressed',
-            'application/x-apple-diskimage',
-        ];
-
-        if (in_array($mimeType, $archiveMimes)) {
-            return 'archive';
-        }
-
-        // По умолчанию
-        return 'other';
-    }
-
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\ProfileMaterialsController;
 use App\Http\Controllers\Subject\SubjectController;
 use App\Http\Controllers\Subject\UserTopicController;
 use App\Http\Controllers\User\FriendshipController;
@@ -46,6 +47,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
     Route::prefix('profileData')
         ->group(function () {
         Route::get('', [ProfileController::class, 'getProfileData']);
+        Route::get('{userId}', [ProfileController::class, 'getProfileDataById']);
     });
 
     Route::prefix('personalData')
@@ -72,6 +74,7 @@ Route::prefix('user')->middleware('auth:sanctum')->group(function () {
         ->group(function () {
         Route::post('beginningOfTeaching', [UserEducationDataController::class, 'updateBeginningOfTeaching']);
         Route::post('course', [UserEducationDataController::class, 'updateCourse']);
+
         Route::post('languageLevel', [UserEducationDataController::class, 'updateLanguageLevel']);
     });
 
@@ -157,6 +160,11 @@ Route::patch('assignments/{assignmentId}/mark', [SubjectController::class, 'upda
     ->middleware('auth:sanctum');
 Route::delete('lessons/{lessonId}/userTopics/{userTopicId}/assignments/{assignmentId}', [SubjectController::class, 'deleteAssignment'])
     ->middleware('auth:sanctum');
+
+Route::post('profile/{userId}/materials', [ProfileMaterialsController::class, 'addMaterial'])->middleware('auth:sanctum');
+Route::get('profile/{userId}/materials', [ProfileMaterialsController::class, 'show'])->middleware('auth:sanctum');
+Route::delete('profile/{userId}/materials/{profileMaterialId}', [ProfileMaterialsController::class, 'delMaterial'])->middleware('auth:sanctum');
+Route::patch('profile/{userId}/materials/{profileMaterialId}', [ProfileMaterialsController::class, 'updateMaterial'])->middleware('auth:sanctum');
 
 
 Route::get('test', function (Request $request) {

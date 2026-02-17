@@ -10,6 +10,7 @@ use App\Http\Requests\PersonalData\UpdateFullNamePostRequest;
 use App\Http\Requests\PersonalData\UpdateUsernamePostRequest;
 use App\Models\User\User;
 use App\Services\User\PersonalDataService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -42,42 +43,43 @@ class PersonalDataController extends Controller
 
     public function updateDateOfBirth(UpdateDateOfBirthPostRequest $request)
     {
-        $this->personalDataService->updateDateOfBirth($request);
+        $dateOfBirth = $this->personalDataService->updateDateOfBirth($request);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'dateOfBirth' => $dateOfBirth
+        ]);
     }
 
     public function updateFullName(UpdateFullNamePostRequest $request)
     {
-        $this->personalDataService->updateFullName($request);
+        $fullName = $this->personalDataService->updateFullName($request);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'firstName' => $fullName['firstName'],
+            'lastName' => $fullName['lastName'],
+            'middleName' => $fullName['middleName'],
+        ]);
     }
 
     public function updateEmail(UpdateEmailPostRequest $request)
     {
-        try {
-            $this->personalDataService->updateEmail($request);
+        $email = $this->personalDataService->updateEmail($request);
 
-            return response()->json(['success' => true]);
-        }
-        catch (\InvalidArgumentException $e)
-        {
-            return response()->json($e->getMessage(), 400);
-        }
+        return response()->json([
+            'success' => true,
+            'email' => $email
+        ]);
     }
 
     public function updateUsername(UpdateUsernamePostRequest $request)
     {
-        try
-        {
-            $this->personalDataService->updateUsername($request);
+        $username = $this->personalDataService->updateUsername($request);
 
-            return response()->json(['success' => true]);
-        }
-        catch (\InvalidArgumentException $e)
-        {
-            return response()->json($e->getMessage(), 400);
-        }
+        return response()->json([
+            'success' => true,
+            'username' => $username
+        ]);
     }
 }

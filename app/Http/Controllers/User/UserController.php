@@ -30,7 +30,7 @@ class UserController extends Controller
             'firstName' => $user->personalData->first_name ?? null,
             'middleName' => $user->personalData->middle_name ?? null,
             'role' => $user->role,
-            'img' => $user->img ? url($user->img) : null,
+            'img' => $user->img ? Storage::url($user->img) : null,
         ]);
     }
 
@@ -57,14 +57,14 @@ class UserController extends Controller
                 'public'
             );
 
-            $user->img = '/api/storage/' . $path;
+            $user->img = $path;
             $user->save();
             $user->refresh();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Фото успешно загружено',
-                'image_url' => $user->img,
+                'image_url' => Storage::url($user->img),
             ]);
         }
         catch (\Exception $e)

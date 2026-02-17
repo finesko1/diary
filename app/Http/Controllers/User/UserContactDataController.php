@@ -25,73 +25,61 @@ class UserContactDataController extends Controller
 
     public function updateCity(UpdateCityPostRequest $request)
     {
-        $this->contactDataService->updateCity($request);
+        $city = $this->contactDataService->updateCity($request);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'city' => $city
+        ]);
     }
 
     public function updateTelephone(UpdateTelephonePostRequest $request)
     {
-        try
-        {
-            $this->contactDataService->updateTelephone($request);
-            return response()->json(['success' => true]);
-        }
-        catch (InvalidArgumentException $e)
-        {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
+        $telephone = $this->contactDataService->updateTelephone($request);
+
+        return response()->json([
+            'success' => true,
+            'telephone' => $telephone
+        ]);
     }
 
     public function updateWhatsApp(UpdateWhatsAppPostRequest $request)
     {
-        try
-        {
-            $this->contactDataService->updateWhatsApp($request);
-            return response()->json(['success' => true]);
-        }
-        catch (InvalidArgumentException $e)
-        {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
+       $whatsApp = $this->contactDataService->updateWhatsApp($request);
+
+       return response()->json([
+           'success' => true,
+           'whatsApp' => $whatsApp
+       ]);
     }
 
     public function updateTelegram(UpdateTelegramPostRequest $request)
     {
-        try
-        {
-            $this->contactDataService->updateTelegram($request);
-            return response()->json(['success' => true]);
-        }
-        catch (InvalidArgumentException $e)
-        {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
+        $telegram = $this->contactDataService->updateTelegram($request);
+
+        return response()->json([
+            'success' => true,
+            'telegram' => $telegram
+        ]);
     }
 
     public function updateVk(UpdateVkPostRequest $request)
     {
-        try
-        {
-            $this->contactDataService->updateVk($request);
-            return response()->json(['success' => true]);
-        }
-        catch (InvalidArgumentException $e)
-        {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
+        $vk = $this->contactDataService->updateVk($request);
+
+        return response()->json([
+            'success' => true,
+            'vk' => $vk
+        ]);
     }
 
     public function updateCallsPlatform(UpdateCallsPlatformPostRequest $request)
     {
-        try
-        {
-            $this->contactDataService->updateCallsPlatform($request);
-            return response()->json(['success' => true]);
-        }
-        catch (InvalidArgumentException $e)
-        {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
+        $callsPlatform = $this->contactDataService->updateCallsPlatform($request);
+
+        return response()->json([
+            'success' => true,
+            'callsPlatform' => $callsPlatform
+        ]);
     }
 }

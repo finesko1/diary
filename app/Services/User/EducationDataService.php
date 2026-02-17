@@ -2,12 +2,15 @@
 
 namespace App\Services\User;
 
+use App\Exceptions\ApiException;
 use App\Http\Requests\EducationData\UpdateBeginningOfTeachingPostRequest;
 use App\Http\Requests\EducationData\UpdateCoursePostRequest;
+use App\Http\Requests\EducationData\UpdateLanguageLevelByUserIdPostRequest;
 use App\Http\Requests\EducationData\UpdateLanguageLevelPostRequest;
 use App\Models\Subject\SubjectLevel;
 use App\Models\User\Friendship;
 use App\Models\User\User;
+use App\Models\User\UserEducationData;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
@@ -62,71 +65,90 @@ class EducationDataService
         return $educationData;
     }
 
-    public function updateBeginningOfTeaching(UpdateBeginningOfTeachingPostRequest $request)
+    public function updateBeginningOfTeaching(UpdateBeginningOfTeachingPostRequest $request): String
     {
         $user = auth()->user();
-        if ($user->isTeacher())
-        {
-            $user->educationData()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['beginning_of_teaching' => $request->beginningOfTeaching]
-            );
-        }
-        else
-        {
-            throw new InvalidArgumentException("Доступно для учителей");
-        }
+
+        throw_if(
+            !$user->isTeacher(),
+            new ApiException('Действие доступно только для учителей', 403)
+        );
+
+        $beginningOfTeaching = $educationData = UserEducationData::updateOrCreate(
+            ['user_id' => $user->id],
+            ['beginning_of_teaching' => $request->beginningOfTeaching]
+        )
+            ->refresh()
+            ->beginning_of_teaching;
+
+        return Carbon::parse($beginningOfTeaching)->format('d-m-Y');
     }
 
-    public function updateCourse(UpdateCoursePostRequest $request)
+    public function updateCourse(UpdateCoursePostRequest $request): String
     {
         $user = auth()->user();
         $course = $request->course;
 
         if (!$user->isLearner() || $user->isAdult())
-            throw new InvalidArgumentException("Доступно только для учеников");
+            throw new InvalidArgumentException("Доступно только для обучающихся");
+
+        throw_if(!$user->isLearner() || $user->isAdult(),
+            new ApiException("Доступно только для обучающихся", 403)
+        );
 
         $maxCourse = [
             User::ROLE_CHILDREN => 11,
             User::ROLE_STUDENT => 6
         ];
 
-        if ($course <= 0 || $course > $maxCourse[$user->role])
-            throw new InvalidArgumentException("Значение должно быть от 1 до " . $maxCourse[$user->role]);
-
-        $user->educationData()->updateOrCreate(
-            ['user_id' => $user->id],
-            ['course' => $request->course]
+        throw_if($course <= 0 || $course > $maxCourse[$user->role],
+            new ApiException("Значение должно быть от 1 до " . $maxCourse[$user->role])
         );
+
+        return UserEducationData::updateOrCreate(
+            [
+                'user_id' => $user->id
+            ],
+            [
+            'course' => $course
+            ])
+            ->refresh()
+            ->course;
     }
 
     public function updateLanguageLevel(UpdateLanguageLevelPostRequest $request)
     {
-        $user = auth()->user();
-
+        $teacher = auth()->user();
         $learner = User::find($request->user_id);
 
-        if ($request->user_id !== $user->id)
+        if ($teacher->id !== $learner->id)
         {
             $friendship = Friendship
-                ::where([['user_id', $user->id], ['friend_id', $learner->id]])
-                ->orWhere([['user_id', $learner->id], ['friend_id', $user->id]])->first();
+                ::where([['user_id', $teacher->id], ['friend_id', $learner->id]])
+                ->orWhere([['user_id', $learner->id], ['friend_id', $teacher->id]])->first();
 
-            if (!$user->isTeacher() || !($friendship->status === 'accepted'))
-                throw new \InvalidArgumentException('Доступно только учителям пользователя');
+            throw_if(!$teacher->isTeacher() || !($friendship->status === 'accepted'),
+                new ApiException('Доступно только учителям пользователя', 403)
+            );
         }
 
-        $learner->subjectLevels()->updateOrCreate(
+        $subjectLevelRelationship = $learner->subjectLevels()->updateOrCreate(
             [
                 'user_id' => $learner->id,
                 'subject_id' => $request->language_id,
             ],
             [
                 'level' => $request->level,
-                'evaluated_by' => $user->id,
+                'evaluated_by' => $teacher->id,
             ]
-        );
+        )->refresh();
 
+        return [
+            'subject_id' => $subjectLevelRelationship->subject_id,
+            'level' => $subjectLevelRelationship->level,
+            'evaluated_by' => $learner->id,
+        ];
     }
+
 
 }

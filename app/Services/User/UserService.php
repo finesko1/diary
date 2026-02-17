@@ -9,6 +9,7 @@ use App\Models\User\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use function Laravel\Prompts\password;
 
 class UserService
@@ -27,6 +28,7 @@ class UserService
                 'lastName' => $user->personalData['last_name'] ?? null,
                 'firstName' => $user->personalData['first_name'] ?? null,
                 'middleName' => $user->personalData['middle_name'] ?? null,
+                'img' => $user->img ? Storage::url($user->img) : null,
             ];
         })->toArray();
     }
@@ -97,5 +99,20 @@ class UserService
         auth()->user()->update([
             'password' => Hash::make($request->password)
         ]);
+    }
+
+    public function isFriend($firstUserId, $secondUserId): bool
+    {
+        $friendship = Friendship
+            ::where([['user_id', $firstUserId], ['friend_id', $secondUserId]])
+            ->orWhere([['user_id', $secondUserId], ['friend_id', $firstUserId]])
+            ->first();
+
+        if (!$friendship ||  $friendship->status !== Friendship::STATUS_ACCEPTED)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
