@@ -33,7 +33,7 @@ class PersonalDataService
                 ? Carbon::parse($personalData->date_of_birth)->format('d-m-Y')
                 : null,
             'username' => auth()->user()->username ?? null,
-            'img' => $user->img ? Storage::url($user->img) : null,
+            'img' => $user->img ? Storage::path($user->img) : null,
             'role' => $user->role
         ];
 

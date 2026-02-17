@@ -28,7 +28,7 @@ class UserService
                 'lastName' => $user->personalData['last_name'] ?? null,
                 'firstName' => $user->personalData['first_name'] ?? null,
                 'middleName' => $user->personalData['middle_name'] ?? null,
-                'img' => $user->img ? Storage::url($user->img) : null,
+                'img' => $user->img ? Storage::path($user->img) : null,
             ];
         })->toArray();
     }

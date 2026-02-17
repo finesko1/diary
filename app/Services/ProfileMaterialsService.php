@@ -72,7 +72,7 @@ class ProfileMaterialsService
             'id' => $profileMaterial->id,
             'subjectId' => $profileMaterial->subject_id,
             'description' => $profileMaterial->description,
-            'url' => Storage::url($fileRelationship->path . '/' . $fileRelationship->filename),
+            'url' => Storage::path($fileRelationship->path . '/' . $fileRelationship->filename),
             'originalName' => $fileRelationship->original_name,
             'type' => $fileRelationship->type,
         ];
@@ -193,7 +193,7 @@ class ProfileMaterialsService
 
             $materialData = [
                 'originalName' => $fileRelationship->original_name,
-                'url' => Storage::url($fileRelationship->path . '/' . $fileRelationship->filename),
+                'url' => Storage::path($fileRelationship->path . '/' . $fileRelationship->filename),
                 'type' => $fileRelationship->type,
                 'mimeType' => $fileRelationship->mime_type,
                 'description' => $profileMaterial->description,
@@ -235,7 +235,7 @@ class ProfileMaterialsService
 
             $materialData = [
                 'originalName' => $fileRelationship->original_name,
-                'url' => Storage::url($fileRelationship->path . '/' . $fileRelationship->filename),
+                'url' => Storage::path($fileRelationship->path . '/' . $fileRelationship->filename),
                 'type' => $fileRelationship->type,
                 'mimeType' => $fileRelationship->mime_type,
                 'description' => $profileMaterial->description,
