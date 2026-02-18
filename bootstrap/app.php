@@ -58,7 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $sqlMessage = $e->getMessage();
 
             // 1062 - Duplicate entry
-            if ($sqlError === 1062) {
+            if ($sqlError === 23505) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Запись с такими данными уже существует',
@@ -67,7 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // 1451 - Cannot delete or update a parent row (foreign key constraint)
-            if ($sqlError === 1451) {
+            if ($sqlError === 23503) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Невозможно удалить запись, так как она используется в других записях',
@@ -76,7 +76,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // 1452 - Cannot add or update a child row (foreign key constraint)
-            if ($sqlError === 1452) {
+            if ($sqlError === 23502) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Указанная связанная запись не существует',
@@ -84,26 +84,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
 
-            // 1048 - Column cannot be null
-            if ($sqlError === 1048) {
-                preg_match("/Column '(.+)' cannot be null/", $sqlMessage, $matches);
-
+            // 42601 - syntax error
+            if ($sqlError === '42601') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Поле ' . ($matches[1] ?? '') . ' не может быть пустым',
-                    'sql_error' => 'column_not_null'
-                ], 422);
+                    'message' => 'Ошибка в запросе к базе данных',
+                    'sql_error' => 'syntax_error'
+                ], 500);
             }
 
-            // 1364 - Field doesn't have a default value
-            if ($sqlError === 1364) {
-                preg_match("/Field '(.+)' doesn't have a default value/", $sqlMessage, $matches);
-
+            // 28000 - invalid authorization (проблемы с подключением)
+            if ($sqlError === '28000' || str_contains($sqlMessage, 'no pg_hba.conf entry')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Поле ' . ($matches[1] ?? '') . ' обязательно для заполнения',
-                    'sql_error' => 'field_required'
-                ], 422);
+                    'message' => 'Ошибка подключения к базе данных',
+                    'sql_error' => 'connection_auth_failed'
+                ], 500);
             }
 
             return response()->json([
