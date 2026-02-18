@@ -64,6 +64,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'Фото успешно загружено',
                 'image_url' => Storage::disk('public')->url($user->img),
+
             ]);
         }
         catch (\Exception $e)
