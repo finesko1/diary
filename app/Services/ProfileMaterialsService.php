@@ -48,7 +48,7 @@ class ProfileMaterialsService
 
         $filepath = 'users/' . $request->user_id . '/profile/materials/' . $teacher->id;
 
-        $fullPath = Storage::disk('public')->disk('public')->putFile($filepath, $file);
+        $fullPath = Storage::disk('public')->putFile($filepath, $file);
 
         throw_if(!$fullPath,
             new ApiException('Ошибка сохранения', 500)
