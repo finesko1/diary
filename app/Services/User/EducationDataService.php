@@ -74,9 +74,11 @@ class EducationDataService
             new ApiException('Действие доступно только для учителей', 403)
         );
 
+        $dateBeginningOfTeaching = Carbon::createFromFormat('d-m-Y', $request->beginningOfTeaching)->format('Y-m-d');
+
         $beginningOfTeaching = $educationData = UserEducationData::updateOrCreate(
             ['user_id' => $user->id],
-            ['beginning_of_teaching' => $request->beginningOfTeaching]
+            ['beginning_of_teaching' => $dateBeginningOfTeaching]
         )
             ->refresh()
             ->beginning_of_teaching;

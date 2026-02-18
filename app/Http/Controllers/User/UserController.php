@@ -30,7 +30,7 @@ class UserController extends Controller
             'firstName' => $user->personalData->first_name ?? null,
             'middleName' => $user->personalData->middle_name ?? null,
             'role' => $user->role,
-            'img' => $user->img ? Storage::url($user->img) : null,
+            'img' => $user->img ? Storage::disk('public')->url($user->img) : null,
         ]);
     }
 
@@ -42,8 +42,7 @@ class UserController extends Controller
 
             if ($user->img)
             {
-                $oldImagePath = str_replace('/storage', 'public', $user->img);
-                Storage::delete($oldImagePath);
+                Storage::disk('public')->delete($user->img);
             }
 
             $file = $request->file('photo');
@@ -64,7 +63,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Фото успешно загружено',
-                'image_url' => Storage::url($user->img),
+                'image_url' => Storage::disk('public')->url($user->img),
             ]);
         }
         catch (\Exception $e)

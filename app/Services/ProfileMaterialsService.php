@@ -48,7 +48,7 @@ class ProfileMaterialsService
 
         $filepath = 'users/' . $request->user_id . '/profile/materials/' . $teacher->id;
 
-        $fullPath = Storage::disk('public')->putFile($filepath, $file);
+        $fullPath = Storage::disk('public')->disk('public')->putFile($filepath, $file);
 
         throw_if(!$fullPath,
             new ApiException('Ошибка сохранения', 500)
@@ -72,7 +72,7 @@ class ProfileMaterialsService
             'id' => $profileMaterial->id,
             'subjectId' => $profileMaterial->subject_id,
             'description' => $profileMaterial->description,
-            'url' => Storage::url($fileRelationship->path . '/' . $fileRelationship->filename),
+            'url' => Storage::disk('public')->url($fileRelationship->path . '/' . $fileRelationship->filename),
             'originalName' => $fileRelationship->original_name,
             'type' => $fileRelationship->type,
         ];
@@ -102,7 +102,7 @@ class ProfileMaterialsService
         $profileMaterial = ProfileMaterial::where('id', $request->profile_material_id)->first();
         $fileRelationship = $profileMaterial->files()->first();
 
-        throw_if(!Storage::disk('public')->delete($fileRelationship->path . $fileRelationship->filename),
+        throw_if(!Storage::disk('public')->disk('public')->delete($fileRelationship->path . $fileRelationship->filename),
             new ApiException("Материал не найден", 404)
         );
 
@@ -193,7 +193,7 @@ class ProfileMaterialsService
 
             $materialData = [
                 'originalName' => $fileRelationship->original_name,
-                'url' => Storage::url($fileRelationship->path . '/' . $fileRelationship->filename),
+                'url' => Storage::disk('public')->url($fileRelationship->path . '/' . $fileRelationship->filename),
                 'type' => $fileRelationship->type,
                 'mimeType' => $fileRelationship->mime_type,
                 'description' => $profileMaterial->description,
@@ -235,7 +235,7 @@ class ProfileMaterialsService
 
             $materialData = [
                 'originalName' => $fileRelationship->original_name,
-                'url' => Storage::url($fileRelationship->path . '/' . $fileRelationship->filename),
+                'url' => Storage::disk('public')->url($fileRelationship->path . '/' . $fileRelationship->filename),
                 'type' => $fileRelationship->type,
                 'mimeType' => $fileRelationship->mime_type,
                 'description' => $profileMaterial->description,

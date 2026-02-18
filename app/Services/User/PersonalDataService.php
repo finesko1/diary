@@ -33,7 +33,7 @@ class PersonalDataService
                 ? Carbon::parse($personalData->date_of_birth)->format('d-m-Y')
                 : null,
             'username' => auth()->user()->username ?? null,
-            'img' => $user->img ? Storage::url($user->img) : null,
+            'img' => $user->img ? Storage::disk('public')->url($user->img) : null,
             'role' => $user->role
         ];
 
@@ -48,12 +48,14 @@ class PersonalDataService
     {
         $user = Auth::user();
 
+        $dateOfBirth = Carbon::createFromFormat('d-m-Y', $request->dateOfBirth)->format('Y-m-d');
+
         $dateOfBirth = PersonalData::updateOrCreate(
             [
                 'user_id' => $user->id
             ],
             [
-                'date_of_birth' => $request->dateOfBirth
+                'date_of_birth' => $dateOfBirth
             ])
             ->refresh()
             ->date_of_birth;
