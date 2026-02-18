@@ -165,8 +165,3 @@ Route::post('profile/{userId}/materials', [ProfileMaterialsController::class, 'a
 Route::get('profile/{userId}/materials', [ProfileMaterialsController::class, 'show'])->middleware('auth:sanctum');
 Route::delete('profile/{userId}/materials/{profileMaterialId}', [ProfileMaterialsController::class, 'delMaterial'])->middleware('auth:sanctum');
 Route::patch('profile/{userId}/materials/{profileMaterialId}', [ProfileMaterialsController::class, 'updateMaterial'])->middleware('auth:sanctum');
-
-
-Route::get('test', function (Request $request) {
-    return response()->json("hello");
-})->middleware('auth:sanctum');

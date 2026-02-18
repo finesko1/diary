@@ -194,7 +194,7 @@ class UserTopicService
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'url' => Storage::path($assignmentAttachment->path),
+                        'url' => Storage::disk('public')->url($assignmentAttachment->path),
                     ];
                 });
             $teacherVideos = $assignmentAttachments->filter(function ($file) {
@@ -207,7 +207,7 @@ class UserTopicService
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'url' => Storage::path($assignmentAttachment->path),
+                        'url' => Storage::disk('public')->url($assignmentAttachment->path),
                     ];
                 });
 
@@ -221,7 +221,7 @@ class UserTopicService
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'url' => Storage::path($assignmentAttachment->path),
+                        'url' => Storage::disk('public')->url($assignmentAttachment->path),
                     ];
                 });
             $learnerPhotos = $assignmentAttachments->filter(function ($file) {
@@ -234,7 +234,7 @@ class UserTopicService
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'url' => Storage::path($assignmentAttachment->path),
+                        'url' => Storage::disk('public')->url($assignmentAttachment->path),
                     ];
                 });
             $learnerVideos = $assignmentAttachments->filter(function ($file) {
@@ -247,7 +247,7 @@ class UserTopicService
                     return [
                         'id' => $assignmentAttachment->id,
                         'originalName' => $assignmentAttachment->original_name,
-                        'url' => Storage::path($assignmentAttachment->path),
+                        'url' => Storage::disk('public')->url($assignmentAttachment->path),
                     ];
                 });
 
