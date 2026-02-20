@@ -22,6 +22,7 @@ use App\Http\Requests\Subject\UpdateAssignmentPutRequest;
 use App\Http\Requests\Subject\UpdateUserTopicPutRequest;
 use App\Http\Requests\Subject\UserTopicDeleteRequest;
 use App\Http\Requests\UserTopic\AddAttachmentInUserTopicPostRequest;
+use App\Http\Requests\UserTopic\RemoveAttachmentInUserTopicDeleteRequest;
 use App\Services\Subject\SubjectService;
 use Illuminate\Http\Request;
 
@@ -277,18 +278,21 @@ class SubjectController extends Controller
         ]);
     }
 
+    public function delAttachmentInUserTopic(RemoveAttachmentInUserTopicDeleteRequest $request)
+    {
+        $response = $this->subjectService->delAttachmentInUserTopic($request);
+
+        return response()->json([
+            'success' => true,
+            ...$response
+        ]);
+    }
+
     public function deleteAttachmentInAssignment(RemoveAttachmentInAssignmentDeleteRequest $request)
     {
-        try
-        {
-            $this->subjectService->deleteAttachmentInAssignment($request);
+        $this->subjectService->deleteAttachmentInAssignment($request);
 
-            return response()->json(['success' => true]);
-        }
-        catch (\Exception $e)
-        {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+        return response()->json(['success' => true]);
     }
 
 

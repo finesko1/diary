@@ -22,6 +22,7 @@ use App\Http\Requests\Subject\UpdateAssignmentPutRequest;
 use App\Http\Requests\Subject\UpdateUserTopicPutRequest;
 use App\Http\Requests\Subject\UserTopicDeleteRequest;
 use App\Http\Requests\UserTopic\AddAttachmentInUserTopicPostRequest;
+use App\Http\Requests\UserTopic\RemoveAttachmentInUserTopicDeleteRequest;
 use App\Models\Subject\Assignment;
 use App\Models\Subject\AssignmentType;
 use App\Models\Subject\Lesson;
@@ -476,6 +477,41 @@ class SubjectService
         DB::commit();
 
         return [];
+    }
+
+    public function delAttachmentInUserTopic(RemoveAttachmentInUserTopicDeleteRequest $request): array
+    {
+        $user = auth()->user();
+        $lesson = Lesson::find($request->lesson_id);
+
+        throw_if($user->isLearner() && $user->id !== $lesson->student_id ||
+            !$user->isLearner() && $user->id !== $lesson->teacher_id,
+            new ApiException('Недоступно', 403)
+        );
+
+        $userTopic = UserTopic::where('lesson_id', $lesson->id)
+            ->where('id', $request->user_topic_id)->first();
+
+        throw_if(!$userTopic,
+            new ApiException('Не существует занятия для урока', 404)
+        );
+
+        $file = $userTopic->files()->where([
+            ['user_id', $user->id],
+            ['id', $request->attachment_id]
+        ])->first();
+
+        throw_if(!$file,
+            new ApiException('Файла не существует', 404)
+        );
+
+        Storage::disk('public')->delete($file->path);
+
+        $file->delete();
+
+        return [
+            'id' => $file->id,
+        ];
     }
 
     public function addAttachmentInAssignment(AddAttachmentInAssignmentPostRequest $request)

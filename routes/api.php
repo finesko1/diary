@@ -165,6 +165,8 @@ Route::delete('lessons/{lessonId}/userTopics/{userTopicId}/assignments/{assignme
 
 Route::post('lessons/{lessonId}/userTopics/{userTopicId}/attachments', [SubjectController::class, 'addAttachmentInUserTopic'])
     ->middleware('auth:sanctum');;
+Route::delete('lessons/{lessonId}/userTopics/{userTopicId}/attachments/{attachmentId}', [SubjectController::class, 'delAttachmentInUserTopic'])
+    ->middleware('auth:sanctum');;
 
 Route::post('profile/{userId}/materials', [ProfileMaterialsController::class, 'addMaterial'])->middleware('auth:sanctum');
 Route::get('profile/{userId}/materials', [ProfileMaterialsController::class, 'show'])->middleware('auth:sanctum');
