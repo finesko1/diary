@@ -2,10 +2,12 @@
 
 namespace App\Services\Subject;
 
+use App\Exceptions\ApiException;
 use App\Http\Requests\Subject\DayEventsGetRequest;
 use App\Http\Requests\Subject\EventTopicsGetRequests;
 use App\Http\Requests\Subject\MonthEventsGetRequest;
 use App\Http\Requests\Subject\UserTopicAssignmentsGetRequets;
+use App\Http\Requests\UserTopic\LessonDeleteRequest;
 use App\Models\Subject\Assignment;
 use App\Models\Subject\AssignmentAttachment;
 use App\Models\Subject\AssignmentType;
@@ -16,6 +18,7 @@ use App\Models\Subject\UserTopicAssignment;
 use App\Models\User\User;
 use App\Services\User\UserService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class UserTopicService
@@ -160,7 +163,7 @@ class UserTopicService
         ];
     }
 
-    public function getUserTopicAssignments(UserTopicAssignmentsGetRequets $request)
+    public function getUserTopicAssignments(UserTopicAssignmentsGetRequets $request): array
     {
         $lesson = Lesson::find($request->lesson_id);
         $userTopic = UserTopic::find($request->user_topic_id);
@@ -269,6 +272,91 @@ class UserTopicService
             ];
         });
 
-        return $assignments;
+        $userTopicAttachments = $userTopic->files;
+
+        $teacherAttachments = $userTopicAttachments
+            ->filter(fn($file) => $file->user && $file->user->isTeacher())
+            ->groupBy('type')
+            ->map(function($files, $type) {
+                return $files->map(fn($file) => [
+                    'id' => $file->id,
+                    'originalName' => $file->original_name,
+                    'url' => Storage::disk('public')->url($file->path),
+                    'mimeType' => $file->mime_type,
+                ]);
+            });
+
+        $teacherFiles = $teacherAttachments->get('file', collect());
+        $teacherPhotos = $teacherAttachments->get('image', collect());
+        $teacherVideos = $teacherAttachments->get('video', collect());
+
+        $learnerAttachments = $userTopicAttachments
+            ->filter(fn($file) => $file->user && $file->user->isLearner())
+            ->groupBy('type')
+            ->map(function($files, $type) {
+                return $files->map(fn($file) => [
+                    'id' => $file->id,
+                    'originalName' => $file->original_name,
+                    'url' => Storage::disk('public')->url($file->path),
+                    'mimeType' => $file->mime_type,
+                ]);
+            });
+
+        $learnerFiles = $learnerAttachments->get('file', collect());
+        $learnerPhotos = $learnerAttachments->get('image', collect());
+        $learnerVideos = $learnerAttachments->get('video', collect());
+
+        return [
+            'attachments' => [
+                'teacherFiles' => $teacherFiles,
+                'teacherPhotos' => $teacherPhotos,
+                'teacherVideos' => $teacherVideos,
+                'learnerFiles' => $learnerFiles,
+                'learnerPhotos' => $learnerPhotos,
+                'learnerVideos' => $learnerVideos,
+            ],
+            'assignments' => $assignments
+        ];
+    }
+
+    public function deleteLesson(LessonDeleteRequest $request)
+    {
+        DB::beginTransaction();
+
+        $lesson = Lesson::find($request->lesson_id);
+
+        throw_if(!$lesson || $lesson->teacher_id !== auth()->user()->id,
+            new ApiException("Недоступно", 403)
+        );
+
+        $userTopicRelationships = UserTopic::where('lesson_id', $lesson->id)->get();
+
+        foreach ($userTopicRelationships as $userTopicRelationship)
+        {
+            $userTopicAssignmentRelationships = UserTopicAssignment::where('user_topic_id', $userTopicRelationship->id)->get();
+
+            foreach ($userTopicAssignmentRelationships as $userTopicAssignmentRelationship)
+            {
+                $assignmentRelationships = Assignment::where('id', $userTopicAssignmentRelationship->assignment_id)->get();
+
+                foreach ($assignmentRelationships as $assignmentRelationship)
+                {
+                    $assignmentRelationship->delete();
+                }
+
+                $userTopicAssignmentRelationship->delete();
+            }
+
+            $userTopicRelationship->delete();
+        }
+
+        $lesson->delete();
+
+        DB::commit();
+
+        return [
+            'id' => $lesson->id,
+            'date' => Carbon::parse($lesson->date)->format('d-m-Y H:i'),
+        ];
     }
 }

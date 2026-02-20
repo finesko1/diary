@@ -142,6 +142,8 @@ Route::prefix('monthevents')->middleware('auth:sanctum')->group(function () {
 
 Route::get('lessons/{lessonId}', [UserTopicController::class, 'getEventTopics'])
     ->middleware('auth:sanctum');
+Route::delete('lessons/{lessonId}', [UserTopicController::class, 'deleteLesson'])
+    ->middleware('auth:sanctum');
 Route::post('lessons/{lessonId}/userTopics', [SubjectController::class, 'createUserTopic'])->name('userTopics.create')
     ->middleware('auth:sanctum');
 Route::get('lessons/{lessonId}/userTopics/{userTopicId}/assignments', [UserTopicController::class, 'getUserTopicAssignments'])->name('userTopics.show')
@@ -160,6 +162,9 @@ Route::patch('assignments/{assignmentId}/mark', [SubjectController::class, 'upda
     ->middleware('auth:sanctum');
 Route::delete('lessons/{lessonId}/userTopics/{userTopicId}/assignments/{assignmentId}', [SubjectController::class, 'deleteAssignment'])
     ->middleware('auth:sanctum');
+
+Route::post('lessons/{lessonId}/userTopics/{userTopicId}/attachments', [SubjectController::class, 'addAttachmentInUserTopic'])
+    ->middleware('auth:sanctum');;
 
 Route::post('profile/{userId}/materials', [ProfileMaterialsController::class, 'addMaterial'])->middleware('auth:sanctum');
 Route::get('profile/{userId}/materials', [ProfileMaterialsController::class, 'show'])->middleware('auth:sanctum');

@@ -21,6 +21,7 @@ use App\Http\Requests\Subject\UpdateAssignmentMarkPatchRequest;
 use App\Http\Requests\Subject\UpdateAssignmentPutRequest;
 use App\Http\Requests\Subject\UpdateUserTopicPutRequest;
 use App\Http\Requests\Subject\UserTopicDeleteRequest;
+use App\Http\Requests\UserTopic\AddAttachmentInUserTopicPostRequest;
 use App\Models\Subject\Assignment;
 use App\Models\Subject\AssignmentType;
 use App\Models\Subject\Lesson;
@@ -409,33 +410,72 @@ class SubjectService
     {
         DB::beginTransaction();
 
-        try
-        {
-            $data = [
-                'assignment_type_id' => $request->assignment_type_id,
-                'description' => $request->description ?? null,
-                'mark' => $request->mark ?? null,
-            ];
+        $data = [
+            'assignment_type_id' => $request->assignment_type_id ?? null,
+            'description' => $request->description ?? null,
+            'mark' => $request->mark ?? null,
+        ];
 
-            if ($request->has('status')) {
-                $data['status'] = $request->status;
-            }
-
-            $assignment = Assignment::create($data);
-
-            UserTopicAssignment::create([
-                'user_topic_id' => $request->user_topic_id,
-                'assignment_id' => $assignment->id,
-            ]);
-
-            DB::commit();
+        if ($request->has('status')) {
+            $data['status'] = $request->status;
         }
-        catch (\Exception $e)
-        {
-            DB::rollBack();
 
-            throw new \InvalidArgumentException($e->getMessage(), 400);
-        }
+        $assignment = Assignment::create($data);
+
+        UserTopicAssignment::create([
+            'user_topic_id' => $request->user_topic_id,
+            'assignment_id' => $assignment->id,
+        ]);
+
+        DB::commit();
+    }
+
+    public function addAttachmentInUserTopic(AddAttachmentInUserTopicPostRequest $request): array
+    {
+        DB::beginTransaction();
+
+        $user = auth()->user();
+
+        $lesson = Lesson::find($request->lesson_id);
+
+        throw_if(($user->isLearner() && ($lesson->student_id !== $user->id)) ||
+            (!$user->isLearner() && ($lesson->teacher_id !== $user->id)),
+            new ApiException('Недоступно', 403)
+        );
+
+        $userTopic = UserTopic::where(function ($query) use ($request, $lesson) {
+            $query->where('id', $request->user_topic_id)
+                ->where('lesson_id', $lesson->id);
+        })->first();
+
+        throw_if(!$userTopic,
+            new ApiException('Не существует занятия для урока', 404)
+        );
+
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+        // Определяем путь для сохранения
+        $directory = "/lessons/{$lesson->id}/user_topics/{$userTopic->id}/";
+
+        // Сохраняем файл в storage
+        $path = Storage::disk('public')->putFile($directory, $file);
+
+        $userTopic->files()->create([
+            'disk' => 'public',
+            'path' => $path,
+            'original_name' => $originalName,
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'extension' => $extension,
+            'type' => app(FileService::class)->determineType($file->getMimeType()),
+            'user_id' => $user->id,
+        ]);
+
+        DB::commit();
+
+        return [];
     }
 
     public function addAttachmentInAssignment(AddAttachmentInAssignmentPostRequest $request)
@@ -466,13 +506,13 @@ class SubjectService
             $directory = "/lessons/{$lesson->id}/assignments/{$assignment->id}";
 
             // Сохраняем файл в storage
-            $path = Storage::disk('public')->putFileAs($directory, $file, $originalName);
+            $path = Storage::disk('public')->putFile($directory, $file);
             $savedFilePath = $path;
 
             // Создаем запись в БД
             $newFile = $assignment->files()->create([
                 'disk' => 'public',
-                'path' => $path, // Например: "lessons/1/assignments/5/filename.jpg"
+                'path' => $path,
                 'original_name' => $originalName,
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),

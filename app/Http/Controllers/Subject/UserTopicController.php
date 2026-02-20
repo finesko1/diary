@@ -7,6 +7,7 @@ use App\Http\Requests\Subject\DayEventsGetRequest;
 use App\Http\Requests\Subject\EventTopicsGetRequests;
 use App\Http\Requests\Subject\MonthEventsGetRequest;
 use App\Http\Requests\Subject\UserTopicAssignmentsGetRequets;
+use App\Http\Requests\UserTopic\LessonDeleteRequest;
 use App\Models\Subject\UserTopic;
 use App\Services\Subject\UserTopicService;
 use Carbon\Carbon;
@@ -67,13 +68,27 @@ class UserTopicController extends Controller
     {
         try
         {
-            $assignments = $this->userTopicService->getUserTopicAssignments($request);
+            $response = $this->userTopicService->getUserTopicAssignments($request);
 
-            return response()->json(['assignments' => $assignments]);
+            return response()->json([
+                'success' => true,
+                'assignments' => $response['assignments'],
+                'attachments' => $response['attachments'],
+            ]);
         }
         catch (\InvalidArgumentException $exception)
         {
             return response()->json(['error' => $exception->getMessage()], 400);
         }
+    }
+
+    public function deleteLesson(LessonDeleteRequest $request)
+    {
+        $lesson = $this->userTopicService->deleteLesson($request);
+
+        return response()->json([
+            'success' => true,
+            'lesson' => $lesson
+        ]);
     }
 }
