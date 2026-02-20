@@ -32,7 +32,7 @@ class PersonalDataService
             'dateOfBirth' => $personalData && $personalData->date_of_birth
                 ? Carbon::parse($personalData->date_of_birth)->format('d-m-Y')
                 : null,
-            'username' => auth()->user()->username ?? null,
+            'username' => $user->username ?? null,
             'img' => $user->img ? Storage::disk('public')->url($user->img) : null,
             'role' => $user->role
         ];

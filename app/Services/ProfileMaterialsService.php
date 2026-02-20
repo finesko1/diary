@@ -74,7 +74,9 @@ class ProfileMaterialsService
             'description' => $profileMaterial->description,
             'url' => Storage::disk('public')->url($fileRelationship->path . '/' . $fileRelationship->filename),
             'originalName' => $fileRelationship->original_name,
+            'mimeType' => $fileRelationship->mime_type,
             'type' => $fileRelationship->type,
+            'size' => $fileRelationship->size,
         ];
     }
 
@@ -198,6 +200,7 @@ class ProfileMaterialsService
                 'mimeType' => $fileRelationship->mime_type,
                 'description' => $profileMaterial->description,
                 'id' => $profileMaterial->id,
+                'size' => $fileRelationship->size,
             ];
 
             if ($subjectIndex === false)
@@ -240,6 +243,7 @@ class ProfileMaterialsService
                 'mimeType' => $fileRelationship->mime_type,
                 'description' => $profileMaterial->description,
                 'id' => $profileMaterial->id,
+                'size' => $fileRelationship->size,
             ];
 
             if ($teacherIndex === false)
