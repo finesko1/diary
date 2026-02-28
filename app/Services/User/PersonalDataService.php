@@ -89,24 +89,18 @@ class PersonalDataService
     {
         $user = Auth::user();
 
-        return $user->update([
-                'id' => $user->id
-            ],
-            [
-                'email' => $request->email,
-            ])
-            ->refresh()
-            ->email;
+        $user->update(['email' => $request->email]);
+        $user->refresh();
+
+        return $user->email;
     }
 
     public function updateUsername(UpdateUsernamePostRequest $request): String
     {
         $user = Auth::user();
 
-        return $user->update([
-                'username' => $request->username
-            ])
-            ->refresh()
-            ->username;
+        $user->update(['username' => $request->username]);
+        $user->refresh();
+        return $user->username;
     }
 }

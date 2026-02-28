@@ -22,7 +22,7 @@ class UpdateVkPostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vk' => 'string|required|regex:/^https:\/\/vk.com\/\w+$/',
+            'vk' => 'string|nullable|regex:/^https:\/\/vk.com\/\w+$/',
         ];
     }
 

@@ -22,7 +22,7 @@ class UpdateCityPostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'city' => 'required|string',
+            'city' => 'nullable|string',
         ];
     }
 }

@@ -123,16 +123,12 @@ class SubjectController extends Controller
 
     public function createUserTopic(CreateUserTopicPostRequest $request)
     {
-        try
-        {
-            $this->subjectService->createUserTopic($request);
+        $response = $this->subjectService->createUserTopic($request);
 
-            return response()->json(['success' => true]);
-        }
-        catch (\InvalidArgumentException $e)
-        {
-            return response()->json(['error' => $e->getMessage()]);
-        }
+        return response()->json([
+            'success' => true,
+            'user_topic_id' => $response['user_topic_id']
+        ]);
     }
 
     public function deleteUserTopic(UserTopicDeleteRequest $request)

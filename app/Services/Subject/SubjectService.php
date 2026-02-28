@@ -233,30 +233,21 @@ class SubjectService
         ]);
     }
 
-    public function createUserTopic(CreateUserTopicPostRequest $request)
+    public function createUserTopic(CreateUserTopicPostRequest $request): array
     {
         DB::beginTransaction();
 
-        try
-        {
-            UserTopic::create([
-                'lesson_id' => $request->lesson_id,
-                'topic_id' => $request->topic_id ?? null,
-                'date' => $request->datetime
-            ]);
+        $userTopic = UserTopic::create([
+            'lesson_id' => $request->lesson_id,
+            'topic_id' => $request->topic_id ?? null,
+            'date' => $request->datetime
+        ]);
 
-            DB::commit();
-        }
-        catch (ModelNotFoundException $e)
-        {
-            DB::rollBack();
-            throw new \InvalidArgumentException($e->getMessage(), 404, $e);
-        }
-        catch (UniqueConstraintViolationException $e)
-        {
-            DB::rollBack();
-            throw new \InvalidArgumentException("Занятие уже существует");
-        }
+        DB::commit();
+
+        return [
+            'user_topic_id' => $userTopic->id ?? null,
+        ];
     }
 
     public function deleteUserTopic(UserTopicDeleteRequest $request)

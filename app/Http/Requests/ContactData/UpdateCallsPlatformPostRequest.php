@@ -22,7 +22,7 @@ class UpdateCallsPlatformPostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'callsPlatform' => 'required|string'
+            'callsPlatform' => 'nullable|string'
         ];
     }
 }

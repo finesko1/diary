@@ -58,12 +58,14 @@ class ContactDataService
                 'city' => $request->city,
             ])
             ->refresh()
-            ->city;
+            ->city ?? '';
     }
 
     public function updateTelephone(UpdateTelephonePostRequest $request): String
     {
         $user = Auth::user();
+
+        $telephone = '';
 
         if(!empty($request->telephone))
             $telephone = $this->phoneService->phoneNumberToE164($request->telephone);
@@ -91,12 +93,14 @@ class ContactDataService
                 'telegram' => $request->telegram
             ])
             ->refresh()
-            ->telegram;
+            ->telegram ?? '';
     }
 
     public function updateWhatsApp(UpdateWhatsAppPostRequest $request): String
     {
         $user = Auth::user();
+
+        $telephone = '';
 
         if(!empty($request->telephone))
             $telephone = $this->phoneService->phoneNumberToE164($request->telephone);
@@ -124,7 +128,7 @@ class ContactDataService
                 'vk' => $request->vk
             ])
             ->refresh()
-            ->vk;
+            ->vk ?? '';
     }
 
     public function updateCallsPlatform(UpdateCallsPlatformPostRequest $request): String
@@ -139,7 +143,7 @@ class ContactDataService
                 'calls_platform' => $request->callsPlatform
             ])
             ->refresh()
-            ->calls_platform;
+            ->calls_platform ?? '';
     }
 
 }
